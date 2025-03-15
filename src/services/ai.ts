@@ -14,26 +14,26 @@ Text to translate:
 ${text}`;
   }
   
-  return `You are a professional editor and language expert. Review the following text for:
-1. Grammar mistakes
-2. Spelling errors
-3. Punctuation issues
-4. Style improvements
-5. Word choice suggestions
+  return `Tu es un correcteur professionnel francophone. Examine le texte suivant pour :
+1. Les erreurs grammaticales
+2. Les fautes d'orthographe
+3. La ponctuation
+4. Le style
+5. Le choix des mots
 
-First, provide the corrected version of the text.
-Then, list each correction you made with a brief explanation of why the change was necessary.
-Format your response as follows:
+Fournis d'abord la version corrigée du texte.
+Puis, liste chaque correction avec une brève explication en français.
+Format de la réponse :
 
-CORRECTED TEXT:
-[Your corrected version]
+TEXTE CORRIGÉ :
+[Version corrigée]
 
-CORRECTIONS AND EXPLANATIONS:
-• [First correction]: [Explanation]
-• [Second correction]: [Explanation]
+CORRECTIONS ET EXPLICATIONS :
+• [Première correction] : [Explication]
+• [Deuxième correction] : [Explication]
 (etc.)
 
-Here's the text to review:
+Voici le texte à examiner :
 ${text}`;
 };
 
@@ -44,9 +44,8 @@ const parseResponse = (response: string, mode: 'translate' | 'correct'): { text:
     return { text: cleanResponse.split('\n')[0].trim() };
   }
 
-  // For corrections, look for specific markers
-  const correctedMatch = cleanResponse.match(/CORRECTED TEXT:\s*([\s\S]*?)(?=CORRECTIONS AND EXPLANATIONS:|$)/i);
-  const correctionsMatch = cleanResponse.match(/CORRECTIONS AND EXPLANATIONS:\s*([\s\S]*?)$/i);
+  const correctedMatch = cleanResponse.match(/TEXTE CORRIGÉ :\s*([\s\S]*?)(?=CORRECTIONS ET EXPLICATIONS :|$)/i);
+  const correctionsMatch = cleanResponse.match(/CORRECTIONS ET EXPLICATIONS :\s*([\s\S]*?)$/i);
 
   const correctedText = correctedMatch ? correctedMatch[1].trim() : cleanResponse;
   let suggestions: string[] = [];
@@ -72,7 +71,7 @@ export const processText = async (
 ): Promise<TranslationResult | CorrectionResult> => {
   try {
     if (!text.trim()) {
-      throw new Error('Input text cannot be empty');
+      throw new Error('Le texte ne peut pas être vide');
     }
 
     const response = await fetch(OLLAMA_URL, {
@@ -85,10 +84,10 @@ export const processText = async (
         prompt: generatePrompt(text, mode, targetLanguage),
         stream: false,
         options: {
-          temperature: 0.3, // Lower temperature for more precise outputs
+          temperature: 0.3,
           top_p: 0.95,
           top_k: 40,
-          num_predict: 1000, // Ensure we get complete responses
+          num_predict: 1000,
         },
       }),
     });
@@ -96,14 +95,14 @@ export const processText = async (
     if (!response.ok) {
       const errorData = await response.text();
       throw new Error(
-        `Ollama API error (${response.status}): ${errorData || response.statusText}`
+        `Erreur API Ollama (${response.status}): ${errorData || response.statusText}`
       );
     }
 
     const data = await response.json();
     
     if (!data.response) {
-      throw new Error('Invalid response from Ollama API');
+      throw new Error('Réponse invalide de l\'API Ollama');
     }
 
     const parsed = parseResponse(data.response, mode);
@@ -121,11 +120,11 @@ export const processText = async (
       };
     }
   } catch (error) {
-    console.error('Error processing text:', error);
+    console.error('Erreur lors du traitement du texte:', error);
     throw new Error(
       error instanceof Error
         ? error.message
-        : 'Failed to connect to Ollama. Please ensure Ollama is running with the Mistral model.'
+        : 'Impossible de se connecter à Ollama. Veuillez vous assurer qu\'Ollama est en cours d\'exécution avec le modèle Mistral.'
     );
   }
 };
