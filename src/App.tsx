@@ -49,7 +49,7 @@ function App() {
         <div className="bg-white/80 backdrop-blur-lg rounded-2xl shadow-xl p-8 space-y-8">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
             <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 text-transparent bg-clip-text">
-              Assistant IA
+              OrthoIA
             </h1>
             <div className="flex items-center p-1 bg-gray-100 rounded-xl">
               <button
