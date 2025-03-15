@@ -1,6 +1,7 @@
 import { TranslationResult, CorrectionResult } from '../types';
 
 const OLLAMA_URL = '/api/generate';
+const OLLAMA_MODEL = 'mistral';
 
 const generatePrompt = (
   text: string,
@@ -80,7 +81,7 @@ export const processText = async (
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'mistral',
+        model: OLLAMA_MODEL,
         prompt: generatePrompt(text, mode, targetLanguage),
         stream: false,
         options: {
