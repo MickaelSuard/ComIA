@@ -47,6 +47,6 @@ http://localhost:5173/
 - Accédez à la page OrthoIA
 - Saisissez votre texte et profitez des corrections et traductions automatiques
 
-
+![alt text](image.png)
 
 👨‍💻 Développé par MickaelSuard
