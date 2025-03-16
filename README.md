@@ -48,5 +48,6 @@ http://localhost:5173/
 - Saisissez votre texte et profitez des corrections et traductions automatiques
 
 ![alt text](image.png)
+![alt text](image-1.png)
 
 👨‍💻 Développé par MickaelSuard
