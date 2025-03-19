@@ -36,7 +36,7 @@ const TranslationView: React.FC<TranslationViewProps> = ({
       />
     </div>
     <div className="relative">
-      <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 -ml-12 hidden md:block">
+      {/* <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 -ml-12 hidden md:block">
         <div className="w-24 h-24 bg-blue-100 rounded-full flex items-center justify-center">
           {isProcessing ? (
             <Loader2 className="w-8 h-8 text-blue-600 animate-spin" />
@@ -44,7 +44,7 @@ const TranslationView: React.FC<TranslationViewProps> = ({
             <ArrowRight className="w-8 h-8 text-blue-600" />
           )}
         </div>
-      </div>
+      </div> */}
       <TextArea
         value={outputText}
         onChange={setOutputText}
