@@ -8,6 +8,7 @@ const generatePrompt = (
   mode: 'translate' | 'correct',
   targetLanguage?: string
 ) => {
+  // Prompt en francais fait n'importe quoi
   if (mode === 'translate') {
     return `You are a professional translator. Translate the following text to ${targetLanguage} while preserving the original meaning, tone, and context. Provide ONLY the translation, without explanations or additional text.
 
