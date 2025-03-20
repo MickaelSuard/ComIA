@@ -10,12 +10,19 @@ const generatePrompt = (
 ) => {
   // Prompt en francais fait n'importe quoi
   if (mode === 'translate') {
-    return `You are a professional translator. Translate the following text to ${targetLanguage} while preserving the original meaning, tone, and context. Provide ONLY the translation, without explanations or additional text.
+    return `You are a professional translator, specialized in accurately translating text while maintaining its original meaning, tone, and context.  
 
-Text to translate:
-${text}`;
+    Translate the following text into ${targetLanguage}.  
+    
+    ⚠️ Important:  
+    - Preserve the original style and nuances.  
+    - Do NOT add explanations, comments, or additional text.  
+    - Return ONLY the translated text.  
+    
+    Text to translate:  
+    """${text}"""`;
   }
-  
+
   return `Tu es un correcteur professionnel francophone. Examine le texte suivant pour :
 1. Les erreurs grammaticales
 2. Les fautes d'orthographe
@@ -102,7 +109,7 @@ export const processText = async (
     }
 
     const data = await response.json();
-    
+
     if (!data.response) {
       throw new Error('Réponse invalide de l\'API Ollama');
     }
