@@ -36,7 +36,7 @@ CORRECTIONS ET EXPLICATIONS :
 (etc.)
 
 Voici le texte à examiner :
-${text}`;
+"""${text}"""`;
 };
 
 const parseResponse = (response: string, mode: 'translate' | 'correct'): { text: string; suggestions?: string[] } => {
