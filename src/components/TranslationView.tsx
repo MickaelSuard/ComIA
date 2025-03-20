@@ -1,5 +1,4 @@
 import React from 'react';
-import { ArrowRight, Loader2 } from 'lucide-react';
 import { TextArea } from './TextArea';
 import { LanguageSelector } from './LanguageSelector';
 
@@ -18,7 +17,6 @@ const TranslationView: React.FC<TranslationViewProps> = ({
   setInputText,
   targetLanguage,
   setTargetLanguage,
-  isProcessing,
   outputText,
   setOutputText
 }) => (
