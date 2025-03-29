@@ -19,6 +19,7 @@ function App() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [activeFeature, setActiveFeature] = useState('chat');
   const [chats, setChats] = useState<Chat[]>([]);
+  const [isDarkMode, setIsDarkMode] = useState(true); // State for theme
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const features = [
@@ -73,89 +74,141 @@ function App() {
     return features.find(f => f.id === featureId)?.icon || MessageSquare;
   };
 
+  const toggleTheme = () => {
+    setIsDarkMode((prev) => !prev);
+  };
+
   return (
-    <div className="flex h-screen bg-[#080810]">
+    <div className={`flex h-screen ${isDarkMode ? 'bg-[#080810]' : 'bg-white'} ${isDarkMode ? 'text-white' : 'text-black'}`}>
       {/* Sidebar */}
       <div 
         className={`${
           isSidebarOpen ? 'w-80' : 'w-0'
-        } bg-[#0d0d15] transition-all duration-300 overflow-hidden flex flex-col border-r border-[#1a1a2e]`}
+        } ${isDarkMode ? 'bg-[#0d0d15]' : 'bg-gray-100'} transition-all duration-300 overflow-hidden flex flex-col border-r ${
+          isDarkMode ? 'border-[#1a1a2e]' : 'border-gray-300'
+        }`}
       >
         <div className="flex-1 overflow-y-auto">
-          <div className="sticky top-0 z-10 backdrop-blur-xl bg-[#0d0d15]/80 p-6 border-b border-[#1a1a2e]">
+          {/* Feature Buttons */}
+          <div
+            className={`sticky top-0 z-10 p-6 border-b ${
+              isDarkMode
+                ? 'backdrop-blur-xl bg-[#0d0d15]/80 border-[#1a1a2e]'
+                : 'bg-gray-100 border-gray-300'
+            }`}
+          >
             {features.map((feature) => (
               <button
                 key={feature.id}
                 onClick={() => setActiveFeature(feature.id)}
                 className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl mb-2 transition-all duration-300 ${
                   activeFeature === feature.id
-                    ? 'bg-gradient-to-r from-blue-600/20 to-indigo-600/20 text-white ring-1 ring-blue-500/30'
-                    : 'text-gray-400 hover:bg-white/5 hover:text-white'
+                    ? isDarkMode
+                      ? 'bg-gradient-to-r from-blue-600/20 to-indigo-600/20 text-white ring-1 ring-blue-500/30'
+                      : 'bg-blue-100 text-blue-600 ring-1 ring-blue-300'
+                    : isDarkMode
+                      ? 'text-gray-400 hover:bg-white/5 hover:text-white'
+                      : 'text-gray-600 hover:bg-gray-200 hover:text-black'
                 }`}
               >
-                <feature.icon size={20} className={activeFeature === feature.id ? 'text-blue-400' : ''} />
+                {React.createElement(feature.icon, {
+                  size: 20,
+                  className: activeFeature === feature.id
+                    ? isDarkMode
+                      ? 'text-blue-400'
+                      : 'text-blue-600'
+                    : ''
+                })}
                 <span className="font-medium">{feature.name}</span>
               </button>
             ))}
           </div>
 
-          {activeFeature !== 'transcribe' && (
-            <div className="p-4">
-              {features.map(feature => {
-                const featureChats = chats.filter(chat => chat.feature === feature.id);
-                if (featureChats.length === 0) return null;
+          {/* Message History */}
+          <div className="p-4">
+            {features.map(feature => {
+              const featureChats = chats.filter(chat => chat.feature === feature.id);
+              if (featureChats.length === 0) return null;
 
-                return (
-                  <div key={feature.id} className="mb-6">
-                    <div className="flex items-center gap-2 px-4 mb-2">
-                      <feature.icon size={16} className="text-gray-500" />
-                      <h2 className="text-sm font-medium text-gray-400">{feature.name}</h2>
-                    </div>
-                    {featureChats.map((chat) => (
-                      <button
-                        key={chat.id}
-                        onClick={() => setSelectedChat(chat.id)}
-                        className={`w-full text-left px-4 py-3 rounded-xl mb-1 transition-all duration-200 flex items-center gap-3 ${
-                          selectedChat === chat.id
-                            ? 'bg-gradient-to-r from-blue-600/20 to-indigo-600/20 text-white ring-1 ring-blue-500/30'
-                            : 'text-gray-400 hover:bg-white/5 hover:text-white'
-                        }`}
-                      >
-                        <Bot size={16} className={selectedChat === chat.id ? 'text-blue-400' : 'text-gray-500'} />
-                        <span className="truncate">{chat.title}</span>
-                      </button>
-                    ))}
+              return (
+                <div key={feature.id} className="mb-6">
+                  <div className="flex items-center gap-2 px-4 mb-2">
+                    <feature.icon size={16} className="text-gray-500" />
+                    <h2 className="text-sm font-medium text-gray-400">{feature.name}</h2>
                   </div>
-                );
-              })}
-            </div>
-          )}
+                  {featureChats.map((chat) => (
+                    <button
+                      key={chat.id}
+                      onClick={() => setSelectedChat(chat.id)}
+                      className={`w-full text-left px-4 py-3 rounded-xl mb-1 transition-all duration-200 flex items-center gap-3 ${
+                        selectedChat === chat.id
+                          ? 'bg-gradient-to-r from-blue-600/20 to-indigo-600/20 text-white ring-1 ring-blue-500/30'
+                          : 'text-gray-400 hover:bg-white/5 hover:text-white'
+                      }`}
+                    >
+                      <Bot size={16} className={selectedChat === chat.id ? 'text-blue-400' : 'text-gray-500'} />
+                      <span className="truncate">{chat.title}</span>
+                    </button>
+                  ))}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+        {/* Dark/Light Mode Toggle */}
+        <div className={`p-4 border-t ${isDarkMode ? 'border-[#1a1a2e]' : 'border-gray-300'} mt-auto`}>
+          <button
+            onClick={toggleTheme}
+            className={`w-full px-4 py-3 rounded-xl transition-all duration-300 ${
+              isDarkMode
+                ? 'bg-gradient-to-r from-blue-600/20 to-indigo-600/20 text-white ring-1 ring-blue-500/30'
+                : 'bg-gray-300 text-black hover:bg-gray-400'
+            }`}
+          >
+            {isDarkMode ? 'Passer en mode clair' : 'Passer en mode sombre'}
+          </button>
         </div>
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col bg-gradient-to-b from-[#0a0a15] to-[#080810]">
+      <div className={`flex-1 flex flex-col ${isDarkMode ? 'bg-gradient-to-b from-[#0a0a15] to-[#080810]' : 'bg-gray-100'}`}>
         {/* Header */}
-        <header className="bg-[#0d0d15]/80 backdrop-blur-xl border-b border-[#1a1a2e] p-4 flex items-center sticky top-0 z-10">
+        <header
+          className={`p-4 flex items-center sticky top-0 z-10 border-b ${
+            isDarkMode
+              ? 'bg-[#0d0d15]/80 backdrop-blur-xl border-[#1a1a2e]'
+              : 'bg-gray-100 border-gray-300'
+          }`}
+        >
           <button
             onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-            className="p-2 hover:bg-white/5 rounded-xl transition-colors duration-200 text-gray-400 hover:text-white"
+            className={`p-2 rounded-xl transition-colors duration-200 ${
+              isDarkMode
+                ? 'hover:bg-white/5 text-gray-400 hover:text-white'
+                : 'hover:bg-gray-200 text-gray-600 hover:text-black'
+            }`}
           >
             <Menu size={22} />
           </button>
           <div className="flex items-center gap-3 ml-4">
             {React.createElement(getFeatureIcon(activeFeature), {
               size: 22,
-              className: "text-blue-400"
+              className: isDarkMode ? 'text-blue-400' : 'text-blue-600'
             })}
-            <h1 className="text-xl font-semibold bg-gradient-to-r from-blue-400 to-indigo-400 text-transparent bg-clip-text">
+            <h1
+              className={`text-xl font-semibold ${
+                isDarkMode
+                  ? 'bg-gradient-to-r from-blue-400 to-indigo-400 text-transparent bg-clip-text'
+                  : 'text-blue-600'
+              }`}
+            >
               {features.find(f => f.id === activeFeature)?.name}
             </h1>
           </div>
         </header>
 
         {/* Messages or Feature Content */}
-        <div className="flex-1 overflow-y-auto p-6 space-y-6">
+        <div className="flex-1 overflow-y-auto p-6 space-y-6 max-w-7xl">
           {activeFeature === 'transcribe' ? (
             <div className="flex flex-col items-center justify-center h-full space-y-6">
               <div className="w-full max-w-2xl p-8 bg-[#0d0d15] rounded-3xl shadow-2xl border border-[#1a1a2e] backdrop-blur-xl bg-gradient-to-b from-[#0d0d15] to-[#0a0a12]">
@@ -189,10 +242,10 @@ function App() {
                 className={`flex ${message.isUser ? 'justify-end' : 'justify-start'}`}
               >
                 <div
-                  className={`max-w-[80%] rounded-2xl p-6 ${
+                  className={`max-w-[80%] rounded-xl p-4 text-sm ${ // Reduced padding and font size
                     message.isUser
-                      ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg shadow-blue-600/10'
-                      : 'bg-[#0d0d15] text-gray-200 border border-[#1a1a2e] shadow-lg shadow-black/20'
+                      ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md shadow-blue-600/10'
+                      : 'bg-[#0d0d15] text-gray-200 border border-[#1a1a2e] shadow-md shadow-black/20'
                   }`}
                 >
                   {message.content}
