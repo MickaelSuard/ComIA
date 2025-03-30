@@ -40,6 +40,7 @@ function AppContent() {
   const [activeFeature, setActiveFeature] = useState('chat');
   const [chats, setChats] = useState<Chat[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [activeTab, setActiveTab] = useState<'transcription' | 'reformulated'>('transcription');
 
   const { toggleTheme, classes } = useTheme(); // Use ThemeContext classes
   const { isLoading, setLoading } = useLoading();
@@ -114,8 +115,9 @@ function AppContent() {
           throw new Error('Erreur lors de la transcription du fichier.');
         }
 
-        const data = await response.json(); // Process only the JSON response
+        const data = await response.json(); // Process both transcriptions
         console.log('Transcription:', data.transcription);
+        console.log('Reformulated Transcription:', data.reformulatedTranscription);
 
         // Add transcription as a new chat
         const newChat: Chat = {
@@ -125,6 +127,10 @@ function AppContent() {
           messages: [
             {
               content: data.transcription,
+              isUser: false,
+            },
+            {
+              content: data.reformulatedTranscription,
               isUser: false,
             },
           ],
@@ -144,9 +150,13 @@ function AppContent() {
     return features.find(f => f.id === featureId)?.icon || MessageSquare;
   };
 
+  const handleTabChange = (tab: 'transcription' | 'reformulated') => {
+    setActiveTab(tab);
+  };
+
   return (
     <>
-      {isLoading && <LoadingPage />} {/* Show LoadingPage when loading */}
+      {isLoading && <LoadingPage />}
       <div className={`flex h-screen ${classes.background} ${classes.text}`}>
         {/* Sidebar */}
         <div 
@@ -240,54 +250,96 @@ function AppContent() {
           </header>
 
           {/* Messages or Feature Content */}
-          <div
-            className={`flex-1 overflow-y-auto p-6 space-y-6 ${
-              activeFeature !== 'transcribe' ? 'max-w-7xl' : ''
-            }`}
-          >
-            {activeFeature === 'transcribe' && (!selectedChat || chats.find(chat => chat.id === selectedChat)?.feature !== 'transcribe') ? (
-              <div className="flex-1 space-x-6 h-full flex flex-col items-center justify-center">
-                <div className={`w-full max-w-2xl p-8 rounded-3xl shadow-2xl border ${classes.border} ${classes.background}`}>
-                  <input
-                    type="file"
-                    ref={fileInputRef}
-                    onChange={handleFileUpload}
-                    accept="audio/*"
-                    className="hidden"
-                  />
+          <div className={`flex-1 overflow-y-auto p-6 space-y-6`}>
+            {activeFeature === 'transcribe' && selectedChat ? (
+              <>
+                {/* Tabs for Transcription and Reformulated Transcription */}
+                <div className="flex border-b">
                   <button
-                    onClick={() => fileInputRef.current?.click()}
-                    className={`w-full p-12 border-2 border-dashed ${classes.border} rounded-2xl ${classes.hoverBackground} transition-all duration-300`}
-                  >
-                    <div className="flex flex-col items-center space-y-6">
-                      <div className="p-6 rounded-full bg-gradient-to-r from-blue-600/20 to-indigo-600/20 ring-1 ring-blue-500/30">
-                        <Upload size={40} className="text-blue-400" />
-                      </div>
-                      <div className="text-gray-300 text-center">
-                        <span className="font-medium text-blue-400">Cliquez pour télécharger</span> ou glissez-déposez
-                        <div className="text-sm text-gray-500 mt-2">MP3, WAV, M4A jusqu'à 25MB</div>
-                      </div>
-                    </div>
-                  </button>
-                </div>
-              </div>
-            ) : (
-              selectedChat && chats.find(chat => chat.id === selectedChat)?.messages.map((message, index) => (
-                <div
-                  key={index}
-                  className={`flex ${message.isUser ? 'justify-end' : 'justify-start'}`}
-                >
-                  <div
-                    className={`max-w-[80%] rounded-xl p-4 text-sm ${
-                      message.isUser
-                        ? `${classes.buttonBackground} shadow-md`
-                        : `${classes.inputBackground} ${classes.border} shadow-md`
+                    onClick={() => handleTabChange('transcription')}
+                    className={`px-4 py-2 ${
+                      activeTab === 'transcription'
+                        ? 'border-b-2 border-blue-500 text-blue-500'
+                        : 'text-gray-500'
                     }`}
                   >
-                    {message.content}
+                    Transcription
+                  </button>
+                  <button
+                    onClick={() => handleTabChange('reformulated')}
+                    className={`px-4 py-2 ${
+                      activeTab === 'reformulated'
+                        ? 'border-b-2 border-blue-500 text-blue-500'
+                        : 'text-gray-500'
+                    }`}
+                  >
+                    Transcription Reformulée
+                  </button>
+                </div>
+
+                {/* Content for Active Tab */}
+                <div className="mt-4">
+                  {activeTab === 'transcription' && (
+                    <div>
+                      <p>
+                        {chats.find((chat) => chat.id === selectedChat)?.messages[0]?.content}
+                      </p>
+                    </div>
+                  )}
+                  {activeTab === 'reformulated' && (
+                    <div>
+                      <p>
+                        {chats.find((chat) => chat.id === selectedChat)?.messages[1]?.content}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </>
+            ) : (
+              activeFeature === 'transcribe' && (!selectedChat || chats.find(chat => chat.id === selectedChat)?.feature !== 'transcribe') ? (
+                <div className="flex-1 space-x-6 h-full flex flex-col items-center justify-center">
+                  <div className={`w-full max-w-2xl p-8 rounded-3xl shadow-2xl border ${classes.border} ${classes.background}`}>
+                    <input
+                      type="file"
+                      ref={fileInputRef}
+                      onChange={handleFileUpload}
+                      accept="audio/*"
+                      className="hidden"
+                    />
+                    <button
+                      onClick={() => fileInputRef.current?.click()}
+                      className={`w-full p-12 border-2 border-dashed ${classes.border} rounded-2xl ${classes.hoverBackground} transition-all duration-300`}
+                    >
+                      <div className="flex flex-col items-center space-y-6">
+                        <div className="p-6 rounded-full bg-gradient-to-r from-blue-600/20 to-indigo-600/20 ring-1 ring-blue-500/30">
+                          <Upload size={40} className="text-blue-400" />
+                        </div>
+                        <div className="text-gray-300 text-center">
+                          <span className="font-medium text-blue-400">Cliquez pour télécharger</span> ou glissez-déposez
+                          <div className="text-sm text-gray-500 mt-2">MP3, WAV, M4A jusqu'à 25MB</div>
+                        </div>
+                      </div>
+                    </button>
                   </div>
                 </div>
-              ))
+              ) : (
+                selectedChat && chats.find(chat => chat.id === selectedChat)?.messages.map((message, index) => (
+                  <div
+                    key={index}
+                    className={`flex ${message.isUser ? 'justify-end' : 'justify-start'}`}
+                  >
+                    <div
+                      className={`max-w-[80%] rounded-xl p-4 text-sm ${
+                        message.isUser
+                          ? `${classes.buttonBackground} shadow-md`
+                          : `${classes.inputBackground} ${classes.border} shadow-md`
+                      }`}
+                    >
+                      {message.content}
+                    </div>
+                  </div>
+                ))
+              )
             )}
           </div>
 

@@ -52,10 +52,16 @@ app.post('/api/transcribe', upload.single('audio'), async (req, res) => {
         console.log('Fichier temporaire supprimé:', filePath);
 
         // Reformulation de la transcription
-        // const reformulatedText = await reformulateText(transcription);
-        console.log('Transcription reformulée:', transcription);
+        const reformulatedText = await reformulateText(transcription);
 
-        res.json({ transcription: transcription }); // Renvoie la transcription reformulée
+        if (!reformulatedText) {
+            throw new Error('La reformulation a échoué. Aucune donnée reçue.');
+        }
+
+        res.json({ 
+            transcription, // Transcription originale
+            reformulatedTranscription: reformulatedText // Transcription reformulée
+        });
     } catch (error) {
         console.error('Erreur de transcription:', error.message);
 

@@ -1,5 +1,3 @@
-
-
 export const reformulateText = async (text) => {
 const OLLAMA_MODEL = 'mistral';
   try {
@@ -10,13 +8,21 @@ const OLLAMA_MODEL = 'mistral';
       },
       body: JSON.stringify({
         model: OLLAMA_MODEL,
-        prompt: `Résumez les points clés de cette réunion en points. Concentrez-vous sur les principales décisions, les tâches assignées et les actions de suivi. Supprimez tous les détails non pertinents et créez un résumé facile à lire, détaillé et structuré. La transcription :  :\n\n""${text}""`,
+        prompt: `Vous allez recevoir la transcription d'un audio d'une réunion. Créez un résumé clair, structuré et concis en suivant ces règles :  
+
+1. **Décisions prises** : Listez les décisions clés.  
+2. **Tâches assignées** : Associez chaque tâche à son responsable.  
+3. **Actions de suivi** : Notez les actions requises et leurs échéances.  
+4. **Points importants** : Résumez les informations essentielles.  
+
+Le résumé doit être précis, factuel et sans reformulation inutile. Ne conservez que les informations pertinentes.  
+
+Transcription :  \n\n""${text}""`,
         stream: false,
         options: {
-          temperature: 0.7,
-          top_p: 0.9,
-          top_k: 50,
-          num_predict: 1000,
+          temperature: 0.3, // Réduit la créativité pour un résumé plus factuel
+          top_p: 0.8, // Utilise le top-p sampling pour la diversité
+          top_k: 40, // Limite le nombre de mots à considérer pour chaque étape
         },
       }),
     });
