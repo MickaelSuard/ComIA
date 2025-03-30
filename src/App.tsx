@@ -167,11 +167,11 @@ function AppContent() {
           } transition-all duration-300 overflow-hidden flex flex-col border-r ${classes.border}`}
         >
           {/* Logo */}
-          <div className="p-6 flex justify-center items-center border-b">
+          <div className={`p-6 flex justify-center items-center border-b ${classes.border}`}>
             <img
               src={isDarkMode ? LogoWhite : LogoColor} // Affichage conditionnel du logo
               alt="Logo"
-              className="h-12"
+              className="h-16"
             />
           </div>
           <div className="flex-1 overflow-y-auto">
