@@ -4,6 +4,7 @@ function LoadingPage() {
       <div className="text-center">
         <div className="loader mb-4"></div>
         <p className="text-lg font-medium text-white">Transcription en cours...</p>
+        <p className="text-lg font-medium text-white">Ne pas fermer cette page.</p>
       </div>
     </div>
   );

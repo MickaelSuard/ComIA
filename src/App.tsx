@@ -248,7 +248,7 @@ function AppContent() {
               activeFeature !== 'transcribe' ? 'max-w-7xl' : ''
             }`}
           >
-            {activeFeature === 'transcribe' ? (
+            {activeFeature === 'transcribe' && (!selectedChat || chats.find(chat => chat.id === selectedChat)?.feature !== 'transcribe') ? (
               <div className="flex-1 space-x-6 h-full flex flex-col items-center justify-center">
                 <div className={`w-full max-w-2xl p-8 rounded-3xl shadow-2xl border ${classes.border} ${classes.background}`}>
                   <input
@@ -273,14 +273,6 @@ function AppContent() {
                     </div>
                   </button>
                 </div>
-
-                {/* Transcription Output */}
-                {transcription && selectedChat && chats.find(chat => chat.id === selectedChat)?.feature === 'transcribe' && (
-                  <div className="w-full max-w-2xl mt-6 p-4 rounded-3xl shadow-md border bg-gray-100 text-gray-800">
-                    <h2 className="text-lg font-semibold mb-4">Transcription</h2>
-                    <p className="text-sm whitespace-pre-wrap">{transcription}</p>
-                  </div>
-                )}
               </div>
             ) : (
               selectedChat && chats.find(chat => chat.id === selectedChat)?.messages.map((message, index) => (
