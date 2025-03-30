@@ -137,3 +137,33 @@ export const processText = async (
     );
   }
 };
+
+export const transcribeAndSummarize = async (file: File): Promise<{ transcription: string; summary: string }> => {
+  const formData = new FormData();
+  formData.append('file', file);
+
+  try {
+    const response = await fetch('/api/transcribe', {
+      method: 'POST',
+      body: formData,
+    });
+
+    if (!response.ok) {
+      const errorData = await response.text();
+      throw new Error(`Erreur API Whisper (${response.status}): ${errorData || response.statusText}`);
+    }
+
+    const data = await response.json();
+    return {
+      transcription: data.transcription,
+      summary: data.summary,
+    };
+  } catch (error) {
+    console.error('Erreur lors de la transcription et du résumé:', error);
+    throw new Error(
+      error instanceof Error
+        ? error.message
+        : 'Impossible de se connecter à Whisper. Veuillez vérifier que le service est en cours d\'exécution.'
+    );
+  }
+};

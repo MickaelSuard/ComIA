@@ -21,6 +21,8 @@ function AppContent() {
   const [activeFeature, setActiveFeature] = useState('chat');
   const [chats, setChats] = useState<Chat[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [transcription, setTranscription] = useState<string | null>(null);
+  const [summary, setSummary] = useState<string | null>(null);
 
   const { toggleTheme, classes } = useTheme(); // Use ThemeContext classes
 
@@ -53,7 +55,7 @@ function AppContent() {
     };
 
     setChats(prevChats => prevChats.map(chat => {
-      if (chat.id === (selectedChat || newChat?.id)) {
+      if (chat.id === (selectedChat || (newChat && newChat.id))) {
         return {
           ...chat,
           messages: [...chat.messages, newMessage]
@@ -65,10 +67,39 @@ function AppContent() {
     setInput('');
   };
 
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       console.log('File selected:', file.name);
+
+      if (!file.type.includes('audio')) {
+        alert('Veuillez sélectionner un fichier audio valide (MP3, WAV, M4A).');
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append('audio', file); // Utilisez "audio" pour correspondre au backend
+
+      try {
+        const response = await fetch('http://localhost:3001/api/transcribe', { 
+          method: 'POST',
+          body: formData,
+        });
+
+        if (!response.ok) {
+          throw new Error('Erreur lors de la transcription du fichier.');
+        }
+
+        const data = await response.json();
+        console.log('Transcription:', data.transcription);
+        console.log('Résumé:', data.summary);
+
+        setTranscription(data.transcription);
+        setSummary(data.summary);
+      } catch (error) {
+        console.error('Erreur:', error);
+        alert('Une erreur est survenue lors de la transcription.');
+      }
     }
   };
 
@@ -170,9 +201,13 @@ function AppContent() {
         </header>
 
         {/* Messages or Feature Content */}
-        <div className="flex-1 overflow-y-auto p-6 space-y-6 max-w-7xl">
+        <div
+          className={`flex-1 overflow-y-auto p-6 space-y-6 ${
+            activeFeature !== 'transcribe' ? 'max-w-7xl' : ''
+          }`}
+        >
           {activeFeature === 'transcribe' ? (
-            <div className="flex flex-col items-center justify-center h-full space-y-6">
+            <div className="flex-1 space-x-6 h-full flex flex-col items-center justify-center">
               <div className={`w-full max-w-2xl p-8 rounded-3xl shadow-2xl border ${classes.border} ${classes.background}`}>
                 <input
                   type="file"
@@ -196,6 +231,20 @@ function AppContent() {
                   </div>
                 </button>
               </div>
+
+              {/* Transcription Output */}
+              {transcription && (
+                <div className="w-full max-w-2xl mt-6 p-4 rounded-3xl shadow-md border bg-gray-100 text-gray-800">
+                  <h2 className="text-lg font-semibold mb-4">Transcription</h2>
+                  <p className="text-sm whitespace-pre-wrap">{transcription}</p>
+                  {summary && (
+                    <>
+                      <h2 className="text-lg font-semibold mt-6 mb-4">Résumé</h2>
+                      <p className="text-sm">{summary}</p>
+                    </>
+                  )}
+                </div>
+              )}
             </div>
           ) : (
             selectedChat && chats.find(chat => chat.id === selectedChat)?.messages.map((message, index) => (

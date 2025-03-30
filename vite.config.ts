@@ -13,6 +13,10 @@ export default defineConfig({
         target: 'http://localhost:11434',
         changeOrigin: true,
       },
+      '/api/transcribe': {
+        target: 'http://localhost:11434',
+        changeOrigin: true,
+      },
     },
   },
 });
