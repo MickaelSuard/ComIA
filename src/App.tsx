@@ -40,7 +40,6 @@ function AppContent() {
   const [activeFeature, setActiveFeature] = useState('chat');
   const [chats, setChats] = useState<Chat[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [transcription, setTranscription] = useState<string | null>(null);
 
   const { toggleTheme, classes } = useTheme(); // Use ThemeContext classes
   const { isLoading, setLoading } = useLoading();
@@ -117,8 +116,6 @@ function AppContent() {
 
         const data = await response.json(); // Process only the JSON response
         console.log('Transcription:', data.transcription);
-
-        setTranscription(data.transcription); // Update transcription state
 
         // Add transcription as a new chat
         const newChat: Chat = {

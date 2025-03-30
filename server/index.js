@@ -27,7 +27,7 @@ app.post('/api/transcribe', upload.single('audio'), async (req, res) => {
     try {
         const transcription = await new Promise((resolve, reject) => {
             const outputFilePath = `${filePath}.txt`; // Chemin du fichier de sortie
-            exec(`whisper ${filePath} --model base --language fr --output_dir uploads 2>NUL`, async (error, stdout, stderr) => {
+            exec(`whisper ${filePath} --model base  --language fr --output_dir uploads 2>NUL`, async (error, stdout, stderr) => {
                 console.log('Whisper stdout:', stdout);
                 if (stderr) {
                     console.warn('Whisper stderr (filtré):', stderr);
