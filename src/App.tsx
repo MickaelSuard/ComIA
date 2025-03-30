@@ -2,6 +2,8 @@ import React, { useState, useRef, createContext, useContext } from 'react';
 import { MessageSquare, Globe2, FileText, Mic, Menu, Send, Upload, Bot } from 'lucide-react';
 import { ThemeProvider, useTheme } from './ThemeContext'; // Import ThemeContext
 import LoadingPage from './components/LoadingPage'; // Import LoadingPage
+import LogoColor from '../logo-color.png'; // Correction du chemin du logo color
+import LogoWhite from '../logo-white.svg'; // Correction du chemin du logo white
 
 const LoadingContext = createContext<{ isLoading: boolean; setLoading: (loading: boolean) => void }>({
   isLoading: false,
@@ -42,7 +44,7 @@ function AppContent() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [activeTab, setActiveTab] = useState<'transcription' | 'reformulated'>('transcription');
 
-  const { toggleTheme, classes } = useTheme(); // Use ThemeContext classes
+  const { toggleTheme, classes, isDarkMode } = useTheme(); // Utilisation correcte de isDarkMode
   const { isLoading, setLoading } = useLoading();
 
   const features = [
@@ -164,6 +166,14 @@ function AppContent() {
             isSidebarOpen ? 'w-80' : 'w-0'
           } transition-all duration-300 overflow-hidden flex flex-col border-r ${classes.border}`}
         >
+          {/* Logo */}
+          <div className="p-6 flex justify-center items-center border-b">
+            <img
+              src={isDarkMode ? LogoWhite : LogoColor} // Affichage conditionnel du logo
+              alt="Logo"
+              className="h-12"
+            />
+          </div>
           <div className="flex-1 overflow-y-auto">
             {/* Feature Buttons */}
             <div className={`sticky top-0 z-10 p-6 border-b ${classes.background} ${classes.border}`}>
