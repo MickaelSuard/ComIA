@@ -1,8 +1,9 @@
 import express from 'express';
 import cors from 'cors';
 import multer from 'multer';
-import { exec } from 'node:child_process'; // Assure-toi d'avoir "node:" ici
+import { exec } from 'node:child_process'; 
 import fs from 'node:fs/promises';
+import { reformulateText } from '../src/services/reformulateText.js'; 
 
 const app = express();
 const upload = multer({ dest: 'uploads/' });
@@ -27,7 +28,7 @@ app.post('/api/transcribe', upload.single('audio'), async (req, res) => {
     try {
         const transcription = await new Promise((resolve, reject) => {
             const outputFilePath = `${filePath}.txt`; // Chemin du fichier de sortie
-            exec(`whisper ${filePath} --model base  --language fr --output_dir uploads 2>NUL`, async (error, stdout, stderr) => {
+            exec(`whisper ${filePath} --model base --language fr  --output_dir uploads 2>NUL`, async (error, stdout, stderr) => {
                 console.log('Whisper stdout:', stdout);
                 if (stderr) {
                     console.warn('Whisper stderr (filtré):', stderr);
@@ -49,8 +50,12 @@ app.post('/api/transcribe', upload.single('audio'), async (req, res) => {
 
         await fs.unlink(filePath); // Supprime le fichier audio temporaire
         console.log('Fichier temporaire supprimé:', filePath);
-        console.log('Transcription:', transcription);   
-        res.json({ transcription }); // Renvoie directement la transcription
+
+        // Reformulation de la transcription
+        // const reformulatedText = await reformulateText(transcription);
+        console.log('Transcription reformulée:', transcription);
+
+        res.json({ transcription: transcription }); // Renvoie la transcription reformulée
     } catch (error) {
         console.error('Erreur de transcription:', error.message);
 
