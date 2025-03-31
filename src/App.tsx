@@ -1,9 +1,10 @@
-import React, { useState, useRef, createContext, useContext } from 'react';
-import { MessageSquare, Globe2, FileText, Mic, Menu, Send, Upload, Bot } from 'lucide-react';
-import { ThemeProvider, useTheme } from './ThemeContext'; // Import ThemeContext
-import LoadingPage from './components/LoadingPage'; // Import LoadingPage
-import LogoColor from '../logo-color.png'; // Correction du chemin du logo color
-import LogoWhite from '../logo-white.svg'; // Correction du chemin du logo white
+import React, { useState, createContext, useContext } from 'react';
+import { MessageSquare, Globe2, FileText, Mic, Menu, Send, Bot } from 'lucide-react';
+import { ThemeProvider, useTheme } from './ThemeContext'; 
+import LoadingPage from './components/LoadingPage'; 
+import LogoColor from '../logo-color.png'; 
+import LogoWhite from '../logo-white.svg'; 
+import Transcription from './components/Transcription';
 
 const LoadingContext = createContext<{ isLoading: boolean; setLoading: (loading: boolean) => void }>({
   isLoading: false,
@@ -41,11 +42,8 @@ function AppContent() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [activeFeature, setActiveFeature] = useState('chat');
   const [chats, setChats] = useState<Chat[]>([]);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const [activeTab, setActiveTab] = useState<'transcription' | 'reformulated'>('transcription');
-
-  const { toggleTheme, classes, isDarkMode } = useTheme(); // Utilisation correcte de isDarkMode
-  const { isLoading, setLoading } = useLoading();
+  const { toggleTheme, classes, isDarkMode } = useTheme(); // Utilisation du theme
+  const { isLoading } = useLoading();
 
   const features = [
     { id: 'chat', name: 'Chat', icon: MessageSquare },
@@ -98,67 +96,8 @@ function AppContent() {
     setInput('');
   };
 
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      console.log('File selected:', file.name);
-
-      if (!file.type.includes('audio')) {
-        alert('Veuillez sélectionner un fichier audio valide (MP3, WAV, M4A).');
-        return;
-      }
-
-      const formData = new FormData();
-      formData.append('audio', file);
-
-      setLoading(true); // Set loading to true
-      try {
-        const response = await fetch('http://localhost:3001/api/transcribe', { 
-          method: 'POST',
-          body: formData,
-        });
-
-        if (!response.ok) {
-          throw new Error('Erreur lors de la transcription du fichier.');
-        }
-
-        const data = await response.json(); // Process both transcriptions
-        console.log('Transcription:', data.transcription);
-        console.log('Reformulated Transcription:', data.reformulatedTranscription);
-
-        // Add transcription as a new chat
-        const newChat: Chat = {
-          id: Date.now().toString(),
-          title: file.name, // Use the file name as the chat title
-          feature: 'transcribe',
-          messages: [
-            {
-              content: data.transcription,
-              isUser: false,
-            },
-            {
-              content: data.reformulatedTranscription,
-              isUser: false,
-            },
-          ],
-        };
-        setChats((prev) => [newChat, ...prev]);
-        setSelectedChat(newChat.id);
-      } catch (error) {
-        console.error('Erreur:', error);
-        alert('Une erreur est survenue lors de la transcription.');
-      } finally {
-        setLoading(false); // Set loading to false
-      }
-    }
-  };
-
   const getFeatureIcon = (featureId: string) => {
     return features.find(f => f.id === featureId)?.icon || MessageSquare;
-  };
-
-  const handleTabChange = (tab: 'transcription' | 'reformulated') => {
-    setActiveTab(tab);
   };
 
   return (
@@ -264,112 +203,37 @@ function AppContent() {
             </div>
           </header>
 
-          {/* Messages or Feature Content */}
+          {/* Messages  */}
           <div className={`flex-1 overflow-y-auto p-6 space-y-6`}>
-            {activeFeature === 'transcribe' && selectedChat ? (
-              <>
-                {/* Tabs for Transcription and Reformulated Transcription */}
-                <div className="flex">
-                  <button
-                    onClick={() => handleTabChange('transcription')}
-                    className={`px-4 py-2 ${
-                      activeTab === 'transcription'
-                        ? 'border-b-2 border-blue-500 text-blue-500'
-                        : 'text-gray-500'
-                    }`}
-                  >
-                    Transcription
-                  </button>
-                  <button
-                    onClick={() => handleTabChange('reformulated')}
-                    className={`px-4 py-2 ${
-                      activeTab === 'reformulated'
-                        ? 'border-b-2 border-blue-500 text-blue-500'
-                        : 'text-gray-500'
-                    }`}
-                  >
-                    Transcription Reformulée
-                  </button>
-                </div>
-
-                {/* Content for Active Tab */}
-                <div className="mt-4">
-                  {activeTab === 'transcription' && (
-                    <div className="flex flex-col items-center space-y-4">
-                      {chats
-                        .find((chat) => chat.id === selectedChat)
-                        ?.messages[0]?.content.split('\n')
-                        .map((line, index) => (
-                          <p key={index} className="text-center mb-2">
-                            {line}
-                          </p>
-                        ))}
-                    </div>
-                  )}
-                  {activeTab === 'reformulated' && (
-                    <div className="space-y-6">
-                      {chats
-                        .find((chat) => chat.id === selectedChat)
-                        ?.messages[1]?.content.split('\n')
-                        .map((line, index) => (
-                          <p key={index} className="mb-2">
-                            {line}
-                          </p>
-                        ))}
-                    </div>
-                  )}
-                </div>
-              </>
+            {activeFeature === 'transcribe' ? (
+              <Transcription
+                chats={chats}
+                setChats={setChats}
+                selectedChat={selectedChat}
+                setSelectedChat={setSelectedChat}
+              />
             ) : (
-              activeFeature === 'transcribe' && (!selectedChat || chats.find(chat => chat.id === selectedChat)?.feature !== 'transcribe') ? (
-                <div className="flex-1 space-x-6 h-full flex flex-col items-center justify-center">
-                  <div className={`w-full max-w-2xl p-8 rounded-3xl shadow-2xl border ${classes.border} ${classes.background}`}>
-                    <input
-                      type="file"
-                      ref={fileInputRef}
-                      onChange={handleFileUpload}
-                      accept="audio/*"
-                      className="hidden"
-                    />
-                    <button
-                      onClick={() => fileInputRef.current?.click()}
-                      className={`w-full p-12 border-2 border-dashed ${classes.border} rounded-2xl ${classes.hoverBackground} transition-all duration-300`}
-                    >
-                      <div className="flex flex-col items-center space-y-6">
-                        <div className="p-6 rounded-full bg-gradient-to-r from-blue-600/20 to-indigo-600/20 ring-1 ring-blue-500/30">
-                          <Upload size={40} className="text-blue-400" />
-                        </div>
-                        <div className="text-gray-300 text-center">
-                          <span className="font-medium text-blue-400">Cliquez pour télécharger</span> ou glissez-déposez
-                          <div className="text-sm text-gray-500 mt-2">MP3, WAV, M4A jusqu'à 25MB</div>
-                        </div>
-                      </div>
-                    </button>
+              selectedChat && chats.find(chat => chat.id === selectedChat)?.messages.map((message, index) => (
+                <div
+                  key={index}
+                  className={`flex ${message.isUser ? 'justify-end' : 'justify-start'}`}
+                >
+                  <div
+                    className={`max-w-[80%] rounded-xl p-4 text-sm ${
+                      message.isUser
+                        ? `${classes.buttonBackground} shadow-md`
+                        : `${classes.inputBackground} ${classes.border} shadow-md`
+                    }`}
+                  >
+                    {message.content}
                   </div>
                 </div>
-              ) : (
-                selectedChat && chats.find(chat => chat.id === selectedChat)?.messages.map((message, index) => (
-                  <div
-                    key={index}
-                    className={`flex ${message.isUser ? 'justify-end' : 'justify-start'}`}
-                  >
-                    <div
-                      className={`max-w-[80%] rounded-xl p-4 text-sm ${
-                        message.isUser
-                          ? `${classes.buttonBackground} shadow-md`
-                          : `${classes.inputBackground} ${classes.border} shadow-md`
-                      }`}
-                    >
-                      {message.content}
-                    </div>
-                  </div>
-                ))
-              )
+              ))
             )}
           </div>
 
           {/* Input */}
-          {activeFeature !== 'transcribe' || !selectedChat || chats.find(chat => chat.id === selectedChat)?.feature !== 'transcribe' ? (
+          {activeFeature !== 'transcribe' && (
             <div className="p-6">
               <form onSubmit={handleSubmit} className="max-w-4xl mx-auto">
                 <div className="flex items-center gap-4">
@@ -389,7 +253,7 @@ function AppContent() {
                 </div>
               </form>
             </div>
-          ) : null}
+          )}
         </div>
       </div>
     </>
