@@ -42,6 +42,8 @@ const OLLAMA_MODEL = 'mistral';
 npm run dev
 
 http://localhost:5173/
+
+npx ts-node --esm server/index.js
 ```
 - Ouvrez votre navigateur web
 - Accédez à la page OrthoIA
