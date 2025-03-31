@@ -264,7 +264,7 @@ function AppContent() {
             {activeFeature === 'transcribe' && selectedChat ? (
               <>
                 {/* Tabs for Transcription and Reformulated Transcription */}
-                <div className="flex border-b">
+                <div className="flex">
                   <button
                     onClick={() => handleTabChange('transcription')}
                     className={`px-4 py-2 ${
@@ -290,17 +290,27 @@ function AppContent() {
                 {/* Content for Active Tab */}
                 <div className="mt-4">
                   {activeTab === 'transcription' && (
-                    <div>
-                      <p>
-                        {chats.find((chat) => chat.id === selectedChat)?.messages[0]?.content}
-                      </p>
+                    <div className="flex flex-col items-center space-y-4">
+                      {chats
+                        .find((chat) => chat.id === selectedChat)
+                        ?.messages[0]?.content.split('\n')
+                        .map((line, index) => (
+                          <p key={index} className="text-center mb-2">
+                            {line}
+                          </p>
+                        ))}
                     </div>
                   )}
                   {activeTab === 'reformulated' && (
-                    <div>
-                      <p>
-                        {chats.find((chat) => chat.id === selectedChat)?.messages[1]?.content}
-                      </p>
+                    <div className="space-y-6">
+                      {chats
+                        .find((chat) => chat.id === selectedChat)
+                        ?.messages[1]?.content.split('\n')
+                        .map((line, index) => (
+                          <p key={index} className="mb-2">
+                            {line}
+                          </p>
+                        ))}
                     </div>
                   )}
                 </div>

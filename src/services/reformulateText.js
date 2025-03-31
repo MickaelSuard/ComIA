@@ -15,7 +15,7 @@ const OLLAMA_MODEL = 'mistral';
 3. **Actions de suivi** : Notez les actions requises et leurs échéances.  
 4. **Points importants** : Résumez les informations essentielles.  
 
-Le résumé doit être précis, factuel et sans reformulation inutile. Ne conservez que les informations pertinentes.  
+Le résumé doit être précis,en francais, factuel et sans reformulation inutile. Ne conservez que les informations pertinentes.  
 
 Transcription :  \n\n""${text}""`,
         stream: false,
