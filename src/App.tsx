@@ -59,6 +59,11 @@ function AppContent() {
     setSelectedChat(null); // Reset selected chat when switching features
   };
 
+  const handleChatSelection = (chatId: string) => {
+    setSelectedChat(chatId);
+    setActiveFeature(chats.find(chat => chat.id === chatId)?.feature || ''); // Ensure only one is active
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!input.trim()) return;
@@ -182,14 +187,14 @@ function AppContent() {
                   key={feature.id}
                   onClick={() => handleFeatureChange(feature.id)} // Use handleFeatureChange
                   className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl mb-2 transition-all duration-300 ${
-                    activeFeature === feature.id
+                    activeFeature === feature.id && !selectedChat // Ensure only one is active
                       ? `${classes.buttonBackground} ${classes.text} ring-1 ring-blue-500/30`
                       : `${classes.text} ${classes.hoverBackground}`
                   }`}
                 >
                   {React.createElement(feature.icon, {
                     size: 20,
-                    className: activeFeature === feature.id ? 'text-blue-400' : '',
+                    className: activeFeature === feature.id && !selectedChat ? 'text-blue-400' : '',
                   })}
                   <span className="font-medium">{feature.name}</span>
                 </button>
@@ -211,7 +216,7 @@ function AppContent() {
                     {featureChats.map((chat) => (
                       <button
                         key={chat.id}
-                        onClick={() => setSelectedChat(chat.id)}
+                        onClick={() => handleChatSelection(chat.id)} // Use handleChatSelection
                         className={`w-full text-left px-4 py-3 rounded-xl mb-1 transition-all duration-200 flex items-center gap-3 ${
                           selectedChat === chat.id
                             ? `${classes.buttonBackground} ${classes.text} ring-1 ring-blue-500/30`

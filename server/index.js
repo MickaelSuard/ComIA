@@ -69,6 +69,17 @@ app.post('/api/transcribe', upload.single('audio'), async (req, res) => {
         if (!res.headersSent) {
             res.status(500).send(`Erreur lors de la transcription: ${error.message}`);
         }
+    } finally {
+        // Nettoyage des fichiers restants dans le dossier uploads
+        try {
+            const files = await fs.readdir('uploads');
+            for (const file of files) {
+                await fs.unlink(`uploads/${file}`);
+                console.log(`Fichier supprimé: uploads/${file}`);
+            }
+        } catch (cleanupError) {
+            console.error('Erreur lors du nettoyage des fichiers temporaires:', cleanupError);
+        }
     }
 });
 
