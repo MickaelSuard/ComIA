@@ -1,5 +1,5 @@
 import React, { useRef, useState } from 'react';
-import { Upload } from 'lucide-react';
+import { Upload, Clipboard } from 'lucide-react';
 import LoadingPage from './LoadingPage';
 import { useTheme } from '../ThemeContext';
 
@@ -27,7 +27,7 @@ function Transcription({
   const [isLoading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState<'transcription' | 'reformulated'>('transcription');
 
-  const {  classes  } = useTheme(); 
+  const { classes } = useTheme();
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -81,6 +81,12 @@ function Transcription({
     setActiveTab(tab);
   };
 
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text).then(() => {
+      alert('Texte copié dans le presse-papiers !');
+    });
+  };
+
   const activeChat = chats.find((chat) => chat.id === selectedChat);
 
   return (
@@ -91,38 +97,57 @@ function Transcription({
           <div className="flex">
             <button
               onClick={() => handleTabChange('transcription')}
-              className={`px-4 py-2 ${
-                activeTab === 'transcription'
-                  ? 'border-b-2 border-blue-500 text-blue-500'
-                  : 'text-gray-500'
-              }`}
+              className={`px-4 py-2 ${activeTab === 'transcription'
+                ? 'border-b-2 border-blue-500 text-blue-500'
+                : 'text-gray-500'
+                }`}
             >
               Transcription
             </button>
             <button
               onClick={() => handleTabChange('reformulated')}
-              className={`px-4 py-2 ${
-                activeTab === 'reformulated'
-                  ? 'border-b-2 border-blue-500 text-blue-500'
-                  : 'text-gray-500'
-              }`}
+              className={`px-4 py-2 ${activeTab === 'reformulated'
+                ? 'border-b-2 border-blue-500 text-blue-500'
+                : 'text-gray-500'
+                }`}
             >
               Transcription Reformulée
             </button>
           </div>
+
           <div className="mt-4">
-            {activeTab === 'transcription' &&
-              activeChat.messages[0]?.content.split('\n').map((line, index) => (
-                <p key={index} className="mb-2">
-                  {line}
-                </p>
-              ))}
+            {activeTab === 'transcription' && (
+              <>
+                <button
+                  onClick={() => copyToClipboard(activeChat.messages[0].content)}
+                  className="mb-4 flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-blue-500 to-indigo-500 rounded-lg shadow-lg hover:from-blue-600 hover:to-indigo-600 transition-all duration-300"
+                >
+                  <Clipboard size={16} />
+                  Copier toute la transcription
+                </button>
+                {activeChat.messages[0]?.content.split('.').map((sentence, index) => (
+                  <div key={index} className="mb-4">
+                    <p>{sentence.trim()}</p>
+                  </div>
+                ))}
+              </>
+            )}
             {activeTab === 'reformulated' &&
-              activeChat.messages[1]?.content.split('\n').map((line, index) => (
-                <p key={index} className="mb-2">
-                  {line}
-                </p>
-              ))}
+              <>
+                <button
+                  onClick={() => copyToClipboard(activeChat.messages[1]?.content)}
+                  className="mb-4 flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-blue-500 to-indigo-500 rounded-lg shadow-lg hover:from-blue-600 hover:to-indigo-600 transition-all duration-300"
+                >
+                  <Clipboard size={16} />
+                  Copier toute la transcription reformulée
+                </button>
+                {activeChat.messages[1]?.content.split('\n').map((line, index) => (
+                  <div key={index} className="mb-4">
+
+                    <p>{line}</p>
+                  </div>
+                ))}
+              </>}
           </div>
         </>
       ) : (
