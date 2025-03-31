@@ -127,7 +127,7 @@ function Transcription({
                 </button>
                 {activeChat.messages[0]?.content.split('.').map((sentence, index) => (
                   <div key={index} className="mb-4">
-                    <p>{sentence.trim()}</p>
+                    <p>{sentence.trim()}.</p>
                   </div>
                 ))}
               </>
