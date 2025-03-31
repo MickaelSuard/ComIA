@@ -1,10 +1,12 @@
 import React, { useState, createContext, useContext } from 'react';
-import { MessageSquare, Globe2, FileText, Mic, Menu, Send, Bot } from 'lucide-react';
+import { MessageSquare, Globe2, FileText, Mic, Menu, Bot } from 'lucide-react';
 import { ThemeProvider, useTheme } from './ThemeContext'; 
 import LoadingPage from './components/LoadingPage'; 
 import LogoColor from '../logo-color.png'; 
 import LogoWhite from '../logo-white.svg'; 
 import Transcription from './components/Transcription';
+import Correction from './components/Correction';
+import Search from './ui/Search';
 
 const LoadingContext = createContext<{ isLoading: boolean; setLoading: (loading: boolean) => void }>({
   isLoading: false,
@@ -203,7 +205,7 @@ function AppContent() {
             </div>
           </header>
 
-          {/* Messages  */}
+          {/* Messages */}
           <div className={`flex-1 overflow-y-auto p-6 space-y-6`}>
             {activeFeature === 'transcribe' ? (
               <Transcription
@@ -211,6 +213,11 @@ function AppContent() {
                 setChats={setChats}
                 selectedChat={selectedChat}
                 setSelectedChat={setSelectedChat}
+              />
+            ) : activeFeature === 'correct' ? (
+              <Correction
+                chats={chats}
+                selectedChat={selectedChat}
               />
             ) : (
               selectedChat && chats.find(chat => chat.id === selectedChat)?.messages.map((message, index) => (
@@ -232,26 +239,17 @@ function AppContent() {
             )}
           </div>
 
-          {/* Input */}
-          {activeFeature !== 'transcribe' && (
-            <div className="p-6">
-              <form onSubmit={handleSubmit} className="max-w-4xl mx-auto">
-                <div className="flex items-center gap-4">
-                  <input
-                    type="text"
-                    value={input}
-                    onChange={(e) => setInput(e.target.value)}
-                    placeholder="Écrivez votre message ici..."
-                    className={`flex-1 p-4 rounded-xl border transition-all duration-200 ${classes.inputBackground} ${classes.inputBorder} ${classes.inputPlaceholder}`}
-                  />
-                  <button
-                    type="submit"
-                    className={`p-4 rounded-xl transition-all duration-200 shadow-lg transform ${classes.buttonBackground} ${classes.text}`}
-                  >
-                    <Send size={20} />
-                  </button>
-                </div>
-              </form>
+          {/* Input for other features */}
+          {activeFeature !== 'transcribe' && activeFeature !== 'correct' && (
+            <div className="p-4 ">
+              <Search
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                onSubmit={handleSubmit}
+                placeholder="Écrivez votre message ici..."
+                isLoading={false}
+                classes={classes}
+              />
             </div>
           )}
         </div>
