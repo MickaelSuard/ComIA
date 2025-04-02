@@ -62,4 +62,8 @@ npx ts-node --esm server/index.js
 ![Transcription Screenshot](/src/public/dark-transcription.png)
 ![Transcription Video](/src/public/Transcription.mp4)
 
+
+## Schéma
+![Schéma ](/src/public/Schema.png)
+
 👨‍💻 Développé par MickaelSuard
