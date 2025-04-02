@@ -1,6 +1,6 @@
-# OrthoIA
+# ComIA
 
-OrthoIA est une application web qui permet de corriger les fautes d'orthographe et de grammaire ainsi que de traduire du texte en local grâce à l'IA.
+ComIA est une application web qui permet de corriger les fautes d'orthographe et de grammaire ainsi que de traduire du texte en local grâce à l'IA.
 
 ## 🚀 Fonctionnalités
 
