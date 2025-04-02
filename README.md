@@ -23,8 +23,8 @@ OrthoIA est une application web qui permet de corriger les fautes d'orthographe 
 ### Étapes d'installation
 ```
 # Cloner le projet
-git clone https://github.com/MickaelSuard/OrthoIA.git
-cd OrthoIA
+git clone https://github.com/MickaelSuard/ComIA.git
+cd ComIA
 
 # Installer les dépendances
 npm install
@@ -52,8 +52,8 @@ npx ts-node --esm server/index.js
 - Saisissez votre texte et profitez des corrections et traductions automatiques
 
 ## Traduction
-![alt text](image.png)
+
 ## Correction
-![alt text](image-1.png)
+
 
 👨‍💻 Développé par MickaelSuard
