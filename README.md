@@ -8,6 +8,7 @@ OrthoIA est une application web qui permet de corriger les fautes d'orthographe 
 - 🌍 **Traduction automatique** de plusieurs langues  
 - 🔐 **Respect de la confidentialité** : aucune donnée envoyée sur des serveurs distants  
 - 🛠 **Utilisation d'Ollama et du modèle Mistral** pour l'analyse et la correction  
+- 🎙️ **Transcription audio** Passer d'un compte rendu audio à un résumé  
 
 ## 🛠️ Installation
 
@@ -16,6 +17,8 @@ OrthoIA est une application web qui permet de corriger les fautes d'orthographe 
 - [React.js]
 - [TypeScript]
 - [Ollama](https://ollama.ai/) avec le modèle Mistral installé
+- [Python 3.11](https://www.python.org/downloads/release/python-3119/)
+- [Whisper](https://github.com/openai/whisper) installé via pip
 
 ### Étapes d'installation
 ```
@@ -35,7 +38,6 @@ npm run dev
 const OLLAMA_URL = '/api/generate';
 const OLLAMA_MODEL = 'mistral';
 ```
-
 
 ## 🖥️️ Utilisation
 ```
