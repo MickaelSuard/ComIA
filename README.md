@@ -58,6 +58,8 @@ npx ts-node --esm server/index.js
 ![Correction Screenshot](/src/public/dark-correction.png)
 
 ## Transcription
+![Transcription Screenshot](/src/public/white-transcription.png)
+![Transcription Screenshot](/src/public/dark-transcription.png)
 ![Transcription Video](/src/public/Transcription.mp4)
 
 👨‍💻 Développé par MickaelSuard
