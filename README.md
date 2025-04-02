@@ -4,11 +4,11 @@ OrthoIA est une application web qui permet de corriger les fautes d'orthographe 
 
 ## 🚀 Fonctionnalités
 
-- ✍️ **Correction orthographique et grammaticale** en local  
-- 🌍 **Traduction automatique** de plusieurs langues  
-- 🔐 **Respect de la confidentialité** : aucune donnée envoyée sur des serveurs distants  
-- 🛠 **Utilisation d'Ollama et du modèle Mistral** pour l'analyse et la correction  
-- 🎙️ **Transcription audio** Passer d'un compte rendu audio à un résumé  
+- ✍️ **Correction orthographique et grammaticale** en local.
+- 🌍 **Traduction automatique** de plusieurs langues.
+- 🔐 **Respect de la confidentialité** : aucune donnée envoyée sur des serveurs distants.
+- 🛠 **Utilisation d'Ollama et du modèle Mistral** pour l'analyse et la correction.
+- 🎙️ **Transcription audio** Passer d'un compte rendu audio à un résumé.  
 
 ## 🛠️ Installation
 
