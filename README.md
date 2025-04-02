@@ -39,7 +39,7 @@ const OLLAMA_URL = '/api/generate';
 const OLLAMA_MODEL = 'mistral';
 ```
 
-## 🖥️️ Utilisation
+## 🖥️ Utilisation
 ```
 npm run dev
 
@@ -52,8 +52,8 @@ npx ts-node --esm server/index.js
 - Saisissez votre texte et profitez des corrections et traductions automatiques
 
 ## Traduction
-
+![alt text](image.png)
 ## Correction
-
+![Correction Screenshot](/src/public/white-correction.png)
 
 👨‍💻 Développé par MickaelSuard

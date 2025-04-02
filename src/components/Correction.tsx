@@ -68,19 +68,18 @@ function Correction({ chats, selectedChat }: CorrectionProps) {
   const activeChat = chats.find(chat => chat.id === selectedChat);
 
   return (
-    <div className="flex flex-col h-full">
-      <div className="flex-1 overflow-y-auto p-6 space-y-4">
+    <div className="flex flex-col h-full max-w-7xl mx-auto">
+      <div className="flex-1  overflow-y-auto p-6 space-y-4">
         {activeChat?.messages.map((message, index) => (
           <div
             key={index}
-            className={`flex ${message.isUser ? 'justify-end' : 'justify-start'}`}
+            className={`flex  ${message.isUser ? 'justify-end' : 'justify-start'}`}
           >
             <div
-              className={`max-w-[70%] rounded-xl p-4 text-sm ${
-                message.isUser
+              className={`max-w-[70%] rounded-xl p-4 text-sm ${message.isUser
                   ? `${classes.buttonBackground} shadow-md`
                   : `${classes.inputBackground} ${classes.border} shadow-md`
-              }`}
+                }`}
             >
               {message.content}
             </div>
@@ -89,7 +88,7 @@ function Correction({ chats, selectedChat }: CorrectionProps) {
       </div>
       <div className="">
         <Search
- value={input}
+          value={input}
           onChange={(e) => setInput(e.target.value)}
           onSubmit={handleSubmit}
           placeholder="Écrivez votre message ici..."
