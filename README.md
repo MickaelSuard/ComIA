@@ -42,7 +42,7 @@ const OLLAMA_MODEL = 'mistral';
 ## 🖥️ Utilisation
 ```
 npm run dev
-
+RZ
 http://localhost:5173/
 
 npx ts-node --esm server/index.js
@@ -51,9 +51,12 @@ npx ts-node --esm server/index.js
 - Accédez à la page OrthoIA
 - Saisissez votre texte et profitez des corrections et traductions automatiques
 
-## Traduction
-![alt text](image.png)
+
 ## Correction
 ![Correction Screenshot](/src/public/white-correction.png)
+![Correction Screenshot](/src/public/dark-correction.png)
+
+## Transcription
+![Transcription Video](/src/public/Transcription.mp4)
 
 👨‍💻 Développé par MickaelSuard
