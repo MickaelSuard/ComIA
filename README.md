@@ -42,9 +42,10 @@ const OLLAMA_MODEL = 'mistral';
 ## 🖥️ Utilisation
 ```
 npm run dev
-RZ
 http://localhost:5173/
 
+
+# Démarrer whisper
 npx ts-node --esm server/index.js
 ```
 - Ouvrez votre navigateur web
