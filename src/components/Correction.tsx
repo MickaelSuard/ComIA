@@ -45,7 +45,7 @@ function Correction({ chats, setChats, selectedChat, setSelectedChat }: Correcti
     setChats(prevChats =>
       prevChats.map(chat =>
         chat.id === activeChat.id
-          ? { ...chat, messages: [...chat.messages, userMessage] } // Mise à jour immuable des messages
+          ? { ...chat, messages: [...chat.messages, userMessage] } 
           : chat
       )
     );
@@ -53,16 +53,29 @@ function Correction({ chats, setChats, selectedChat, setSelectedChat }: Correcti
     setIsLoading(true);
     try {
       const correctedMessage = await correctText(input);
-      const botMessage = 'correctedText' in correctedMessage
-        ? { content: correctedMessage.correctedText, isUser: false }
-        : { content: 'Unexpected response format.', isUser: false };
-      setChats(prevChats =>
-        prevChats.map(chat =>
-          chat.id === activeChat.id
-            ? { ...chat, messages: [...chat.messages, botMessage] }
-            : chat
-        )
-      );
+      console.log(correctedMessage);
+    
+      // Message pour le texte corrigé
+      const correctedBotMessage = {
+        content: correctedMessage.correctedText,
+        isUser: false,
+      };
+    
+      console.log(correctedMessage.suggestions)
+      // Concatenation de toutes les suggestions dans un seul message
+      const suggestionsContent = correctedMessage.suggestions?.map((suggestion) => `• ${suggestion}`).join('<br />') || 'Aucune suggestion disponible.';
+    
+      // Message pour les suggestions (dans une seule bulle)
+      const suggestionsBotMessage = {
+        content: suggestionsContent,
+        isUser: false,
+      };
+    
+      // Mise à jour de l'état avec les nouveaux messages
+      setChats(prevChats => prevChats.map(chat => chat.id === activeChat.id
+        ? { ...chat, messages: [...chat.messages, correctedBotMessage, suggestionsBotMessage] }
+        : chat
+      ));
     } catch (error) {
       console.error('Erreur lors de la correction:', error);
       setChats(prevChats =>
@@ -76,6 +89,7 @@ function Correction({ chats, setChats, selectedChat, setSelectedChat }: Correcti
       setIsLoading(false);
       setInput('');
     }
+    
   };
 
   const activeChat = chats.find(chat => chat.id === selectedChat);
@@ -104,7 +118,7 @@ function Correction({ chats, setChats, selectedChat, setSelectedChat }: Correcti
                       : `${classes.inputBackground} ${classes.border} shadow-md`
                       }`}
                   >
-                    {message.content}
+                    <div dangerouslySetInnerHTML={{ __html: message.content }} />
                   </div>
                 </div>
               ))}
