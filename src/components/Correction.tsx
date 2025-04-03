@@ -50,7 +50,7 @@ function Correction({ chats, setChats, selectedChat, setSelectedChat }: Correcti
           : chat
       )
     );
-
+    setInput('');
     setIsLoading(true);
     try {
       const correctedMessage = await correctText(input);
@@ -88,7 +88,7 @@ function Correction({ chats, setChats, selectedChat, setSelectedChat }: Correcti
       );
     } finally {
       setIsLoading(false);
-      setInput('');
+     
     }
 
   };
@@ -115,7 +115,7 @@ function Correction({ chats, setChats, selectedChat, setSelectedChat }: Correcti
             transition={{ duration: 0.3, ease: "easeInOut" }}
             className="flex flex-col flex-1"
           >
-            <div className="flex-1 overflow-y-auto p-6 space-y-4 mb-16"> {/* Ajout de 'mb-16' pour laisser de l'espace pour la barre de recherche */}
+            <div className="flex-1 p-6 overflow-y-auto space-y-4 mb-16"> {/* Changed overflow-hidden to overflow-y-auto */}
               {activeChat.messages.map((message, index) => (
                 <div
                   key={index}
@@ -177,7 +177,7 @@ function Correction({ chats, setChats, selectedChat, setSelectedChat }: Correcti
           >
             <div className="w-full flex flex-col justify-center items-center">
               <h2 className={`text-3xl font-semibold ${classes.text} mb-4`}>
-                Quelle correction souhaites-tu que je fasse ?
+                Quelle correction souhaitez-vous que je réalise ?
               </h2>
 
               <Search
