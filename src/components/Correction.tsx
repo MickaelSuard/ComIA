@@ -23,6 +23,7 @@ function Correction({ chats, setChats, selectedChat, setSelectedChat }: Correcti
   const { classes } = useTheme();
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [correctionMode, setCorrectionMode] = useState<'formelle' | 'informelle'>('formelle'); // New state for correction mode
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -53,7 +54,7 @@ function Correction({ chats, setChats, selectedChat, setSelectedChat }: Correcti
     setInput('');
     setIsLoading(true);
     try {
-      const correctedMessage = await correctText(input);
+      const correctedMessage = await correctText(input, correctionMode); // Pass correction mode
       console.log(correctedMessage);
 
       // Message pour le texte corrigé
@@ -115,7 +116,7 @@ function Correction({ chats, setChats, selectedChat, setSelectedChat }: Correcti
             transition={{ duration: 0.3, ease: "easeInOut" }}
             className="flex flex-col flex-1"
           >
-            <div className="flex-1 p-6 overflow-y-auto space-y-4 mb-16"> {/* Changed overflow-hidden to overflow-y-auto */}
+            <div className="flex-1 p-6 overflow-y-auto space-y-4 mb-16"> 
               {activeChat.messages.map((message, index) => (
                 <div
                   key={index}
@@ -155,7 +156,22 @@ function Correction({ chats, setChats, selectedChat, setSelectedChat }: Correcti
             </div>
 
             {/* Barre de recherche */}
-            <div className="sticky bottom-0">
+            <div className="sticky bottom-0 flex flex-col gap-2">
+              {/* Dropdown for correction mode */}
+              <div className="self-start">
+                <label htmlFor="correctionMode" className={`block text-sm font-medium ${classes.text}`}>
+                  Mode de correction :
+                </label>
+                <select
+                  id="correctionMode"
+                  value={correctionMode}
+                  onChange={(e) => setCorrectionMode(e.target.value as 'formelle' | 'informelle')}
+                  className={`mt-1 p-2 rounded-xl border ${classes.inputBackground} ${classes.inputBorder} ${classes.text}`}
+                >
+                  <option value="formelle">Formelle</option>
+                  <option value="informelle">Informelle</option>
+                </select>
+              </div>
               <Search
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
@@ -179,7 +195,21 @@ function Correction({ chats, setChats, selectedChat, setSelectedChat }: Correcti
               <h2 className={`text-3xl font-semibold ${classes.text} mb-4`}>
                 Quelle correction souhaitez-vous que je réalise ?
               </h2>
-
+              {/* Dropdown for correction mode */}
+              <div className="mb-4 w-full max-w-md">
+                <label htmlFor="correctionMode" className={`block text-sm font-medium ${classes.text}`}>
+                  Mode de correction :
+                </label>
+                <select
+                  id="correctionMode"
+                  value={correctionMode}
+                  onChange={(e) => setCorrectionMode(e.target.value as 'formelle' | 'informelle')}
+                  className={`mt-1 block w-full p-2 rounded-xl border ${classes.inputBackground} ${classes.inputBorder} ${classes.text}`}
+                >
+                  <option value="formelle">Formelle</option>
+                  <option value="informelle">Informelle</option>
+                </select>
+              </div>
               <Search
                 value={input}
                 onChange={(e) => setInput(e.target.value)}

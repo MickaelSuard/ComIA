@@ -1,9 +1,10 @@
-const generateCorrectionPrompt = (text: string) => {
-  return `Tu es un correcteur professionnel francophone. Examine le texte suivant pour :
+const generateCorrectionPrompt = (text: string, mode: 'formelle' | 'informelle') => {
+  if (mode === 'formelle') {
+    return `Tu es un correcteur professionnel francophone. Examine le texte suivant pour :
 1. Les erreurs grammaticales
 2. Les fautes d'orthographe
 3. La ponctuation
-4. Le style
+4. Le style formel et très poli,professionnel
 5. Le choix des mots
 
 Fournis d'abord la version corrigée du texte.
@@ -20,6 +21,33 @@ CORRECTIONS ET EXPLICATIONS :
 
 Voici le texte à examiner :
 """${text}"""`;
+  }
+
+  if (mode === 'informelle') {
+    return `Tu es un correcteur professionnel francophone. Examine le texte suivant pour :
+1. Les erreurs grammaticales
+2. Les fautes d'orthographe
+3. La ponctuation
+4. Le style informel et conversationnel
+5. Le choix des mots
+
+Fournis d'abord la version corrigée du texte.
+Puis, liste chaque correction avec une brève explication en français.
+Format de la réponse :
+
+TEXTE CORRIGÉ :
+[Version corrigée]
+
+CORRECTIONS ET EXPLICATIONS :
+• [Première correction] : [Explication]
+• [Deuxième correction] : [Explication]
+(etc.)
+
+Voici le texte à examiner :
+"""${text}"""`;
+  }
+
+  throw new Error('Mode de correction invalide');
 };
 
 const parseCorrectionResponse = (response: string) => {
@@ -45,7 +73,7 @@ const parseCorrectionResponse = (response: string) => {
   };
 };
 
-export const correctText = async (text: string) => {
+export const correctText = async (text: string, mode: 'formelle' | 'informelle') => {
   try {
     if (!text.trim()) {
       throw new Error('Le texte ne peut pas être vide');
@@ -58,7 +86,7 @@ export const correctText = async (text: string) => {
       },
       body: JSON.stringify({
         model: 'mistral',
-        prompt: generateCorrectionPrompt(text),
+        prompt: generateCorrectionPrompt(text, mode), // Pass the mode to the prompt generator
         stream: false,
         options: {
           temperature: 0.3,
