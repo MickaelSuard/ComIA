@@ -3,6 +3,7 @@ import { useTheme } from '../ThemeContext';
 import { useState } from 'react';
 import Search from '../ui/Search';
 import { motion, AnimatePresence } from "framer-motion";
+import { Clipboard } from 'lucide-react';
 
 type Chat = {
   id: string;
@@ -36,8 +37,8 @@ function Correction({ chats, setChats, selectedChat, setSelectedChat }: Correcti
         feature: 'correct',
         messages: [],
       };
-      setChats(prevChats => [newChat, ...prevChats]); 
-      setSelectedChat(newChat.id); 
+      setChats(prevChats => [newChat, ...prevChats]);
+      setSelectedChat(newChat.id);
       activeChat = newChat;
     }
 
@@ -45,7 +46,7 @@ function Correction({ chats, setChats, selectedChat, setSelectedChat }: Correcti
     setChats(prevChats =>
       prevChats.map(chat =>
         chat.id === activeChat.id
-          ? { ...chat, messages: [...chat.messages, userMessage] } 
+          ? { ...chat, messages: [...chat.messages, userMessage] }
           : chat
       )
     );
@@ -54,23 +55,23 @@ function Correction({ chats, setChats, selectedChat, setSelectedChat }: Correcti
     try {
       const correctedMessage = await correctText(input);
       console.log(correctedMessage);
-    
+
       // Message pour le texte corrigé
       const correctedBotMessage = {
         content: correctedMessage.correctedText,
         isUser: false,
       };
-    
+
       console.log(correctedMessage.suggestions)
       // Concatenation de toutes les suggestions dans un seul message
       const suggestionsContent = correctedMessage.suggestions?.map((suggestion) => `• ${suggestion}`).join('<br />') || 'Aucune suggestion disponible.';
-    
+
       // Message pour les suggestions (dans une seule bulle)
       const suggestionsBotMessage = {
         content: suggestionsContent,
         isUser: false,
       };
-    
+
       // Mise à jour de l'état avec les nouveaux messages
       setChats(prevChats => prevChats.map(chat => chat.id === activeChat.id
         ? { ...chat, messages: [...chat.messages, correctedBotMessage, suggestionsBotMessage] }
@@ -89,7 +90,15 @@ function Correction({ chats, setChats, selectedChat, setSelectedChat }: Correcti
       setIsLoading(false);
       setInput('');
     }
-    
+
+  };
+
+  const handleCopy = (text: string) => {
+    navigator.clipboard.writeText(text).then(() => {
+      alert('Texte copié dans le presse-papiers !');
+    }).catch(err => {
+      console.error('Erreur lors de la copie du texte :', err);
+    });
   };
 
   const activeChat = chats.find(chat => chat.id === selectedChat);
@@ -116,9 +125,22 @@ function Correction({ chats, setChats, selectedChat, setSelectedChat }: Correcti
                     className={`max-w-[70%] rounded-xl p-4 text-sm ${message.isUser
                       ? `${classes.buttonBackground} shadow-md`
                       : `${classes.inputBackground} ${classes.border} shadow-md`
-                      }`}
+                      } relative`}
                   >
-                    <div dangerouslySetInnerHTML={{ __html: message.content }} />
+                    {!message.isUser && (
+                      <div className="flex items-center">
+                        <div className="flex-1" dangerouslySetInnerHTML={{ __html: message.content }} />
+                        <button
+                          onClick={() => handleCopy(message.content)}
+                          className={`ml-2 p-1 text-gray-500 hover:text-gray-700 ${classes.text}   rounded-full shadow-sm`}
+                        >
+                          <Clipboard size={16} />
+                        </button>
+                      </div>
+                    )}
+                    {message.isUser && (
+                      <div dangerouslySetInnerHTML={{ __html: message.content }} />
+                    )}
                   </div>
                 </div>
               ))}
