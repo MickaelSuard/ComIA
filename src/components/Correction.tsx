@@ -2,6 +2,7 @@ import { correctText } from '../services/correctionIA';
 import { useTheme } from '../ThemeContext';
 import { useState } from 'react';
 import Search from '../ui/Search';
+import { motion, AnimatePresence } from "framer-motion";
 
 type Chat = {
   id: string;
@@ -81,34 +82,73 @@ function Correction({ chats, setChats, selectedChat, setSelectedChat }: Correcti
 
   return (
     <div className="flex flex-col h-full max-w-7xl mx-auto">
-      <div className="flex-1  overflow-y-auto p-6 space-y-4">
-        {activeChat?.messages.map((message, index) => (
-          <div
-            key={index}
-            className={`flex  ${message.isUser ? 'justify-end' : 'justify-start'}`}
+      <AnimatePresence mode="wait">
+        {activeChat ? (
+          <motion.div
+            key="chat"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            transition={{ duration: 0.3, ease: "easeInOut" }}
+            className="flex flex-col flex-1"
           >
-            <div
-              className={`max-w-[70%] rounded-xl p-4 text-sm ${message.isUser
-                  ? `${classes.buttonBackground} shadow-md`
-                  : `${classes.inputBackground} ${classes.border} shadow-md`
-                }`}
-            >
-              {message.content}
+            <div className="flex-1 overflow-y-auto p-6 space-y-4">
+              {activeChat.messages.map((message, index) => (
+                <div
+                  key={index}
+                  className={`flex ${message.isUser ? "justify-end" : "justify-start"}`}
+                >
+                  <div
+                    className={`max-w-[70%] rounded-xl p-4 text-sm ${message.isUser
+                      ? `${classes.buttonBackground} shadow-md`
+                      : `${classes.inputBackground} ${classes.border} shadow-md`
+                      }`}
+                  >
+                    {message.content}
+                  </div>
+                </div>
+              ))}
             </div>
-          </div>
-        ))}
-      </div>
-      <div className="">
-        <Search
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          onSubmit={handleSubmit}
-          placeholder="Écrivez votre message ici..."
-          isLoading={isLoading}
-          classes={classes}
-        />
-      </div>
+            <div>
+              <Search
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                onSubmit={handleSubmit}
+                placeholder="Écrivez votre message ici..."
+                isLoading={isLoading}
+                classes={classes}
+              />
+            </div>
+          </motion.div>
+        ) : (
+          <motion.div
+            key="search"
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.9 }}
+            transition={{ duration: 0.3, ease: "easeInOut" }}
+            className="flex flex-1 items-center justify-center"
+          >
+            <div className="w-full flex flex-col justify-center items-center">
+              <h2 className={`text-3xl font-semibold ${classes.text} mb-4`}>
+                Quelle correction souhaites-tu que je fasse ?
+              </h2>
+
+              <Search
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                onSubmit={handleSubmit}
+                placeholder="Écrivez votre message ici..."
+                isLoading={isLoading}
+                classes={classes}
+              />
+            </div>
+
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
+
   );
 }
 

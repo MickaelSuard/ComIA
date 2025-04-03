@@ -17,7 +17,7 @@ type SearchProps = {
 
 function Search({ value, onChange, onSubmit, placeholder = 'Rechercher...', isLoading = false, classes }: SearchProps) {
   return (
-    <form onSubmit={onSubmit} className="flex justify-center items-center gap-4">
+    <form onSubmit={onSubmit} className="flex w-full justify-center items-center gap-4">
       <input
         type="text"
         value={value}
