@@ -23,7 +23,7 @@ function Search({ value, onChange, onSubmit, placeholder = 'Rechercher...', isLo
         value={value}
         onChange={onChange}
         placeholder={placeholder}
-        className={`flex-1 p-4 max-w-7xl rounded-xl border transition-all duration-200 ${classes.inputBackground} ${classes.inputBorder} ${classes.inputPlaceholder}`}
+        className={`flex-1 p-4 max-w-7xl h-full rounded-xl border transition-all duration-200 ${classes.inputBackground} ${classes.inputBorder} ${classes.inputPlaceholder}`}
       />
       <button
         type="submit"

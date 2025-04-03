@@ -115,7 +115,7 @@ function Correction({ chats, setChats, selectedChat, setSelectedChat }: Correcti
             transition={{ duration: 0.3, ease: "easeInOut" }}
             className="flex flex-col flex-1"
           >
-            <div className="flex-1 overflow-y-auto p-6 space-y-4">
+            <div className="flex-1 overflow-y-auto p-6 space-y-4 mb-16"> {/* Ajout de 'mb-16' pour laisser de l'espace pour la barre de recherche */}
               {activeChat.messages.map((message, index) => (
                 <div
                   key={index}
@@ -132,14 +132,14 @@ function Correction({ chats, setChats, selectedChat, setSelectedChat }: Correcti
                         <div className="flex-1" dangerouslySetInnerHTML={{ __html: message.content }} />
                         <button
                           onClick={() => handleCopy(message.content)}
-                          className={`ml-2 p-1 text-gray-500 hover:text-gray-700 ${classes.text}   rounded-full shadow-sm`}
+                          className={`ml-2 p-1 text-gray-500 hover:text-gray-700 ${classes.text} rounded-full shadow-sm`}
                         >
                           <Clipboard size={16} />
                         </button>
                       </div>
                     )}
                     {message.isUser && (
-                      <div dangerouslySetInnerHTML={{ __html: message.content }} />
+                      message.content
                     )}
                   </div>
                 </div>
@@ -153,7 +153,9 @@ function Correction({ chats, setChats, selectedChat, setSelectedChat }: Correcti
                 </div>
               )}
             </div>
-            <div>
+
+            {/* Barre de recherche */}
+            <div className="sticky bottom-0">
               <Search
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
