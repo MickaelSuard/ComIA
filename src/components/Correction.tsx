@@ -108,6 +108,14 @@ function Correction({ chats, setChats, selectedChat, setSelectedChat }: Correcti
                   </div>
                 </div>
               ))}
+
+              {/* Affichage du loader si isLoading est true */}
+              {isLoading && (
+                <div className="flex justify-center items-center">
+                  <div className="w-6 h-6 border-4 border-t-4 border-gray-500 border-solid rounded-full animate-spin"></div>
+                  <span className="text-gray-500 ml-2">Chargement...</span>
+                </div>
+              )}
             </div>
             <div>
               <Search
