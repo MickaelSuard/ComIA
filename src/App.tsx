@@ -217,7 +217,9 @@ function AppContent() {
             ) : activeFeature === 'correct' ? (
               <Correction
                 chats={chats}
+                setChats={setChats} // Ajout de setChats
                 selectedChat={selectedChat}
+                setSelectedChat={setSelectedChat} // Ajout de setSelectedChat
               />
             ) : (
               selectedChat && chats.find(chat => chat.id === selectedChat)?.messages.map((message, index) => (

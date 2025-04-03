@@ -12,10 +12,12 @@ type Chat = {
 
 type CorrectionProps = {
   chats: Chat[];
+  setChats: React.Dispatch<React.SetStateAction<Chat[]>>; // Ajout de setChats
   selectedChat: string | null;
+  setSelectedChat: React.Dispatch<React.SetStateAction<string | null>>; // Ajout de setSelectedChat
 };
 
-function Correction({ chats, selectedChat }: CorrectionProps) {
+function Correction({ chats, setChats, selectedChat, setSelectedChat }: CorrectionProps) {
   const { classes } = useTheme();
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -24,41 +26,51 @@ function Correction({ chats, selectedChat }: CorrectionProps) {
     e.preventDefault();
     if (!input.trim()) return;
 
-    const activeChat = chats.find(chat => chat.id === selectedChat);
+    let activeChat = chats.find(chat => chat.id === selectedChat);
 
-    const newChat = !selectedChat && {
-      id: Date.now().toString(),
-      title: `Correction ${chats.length + 1}`,
-      feature: 'correct',
-      messages: [],
-    };
-
-    if (newChat) {
-      chats.unshift(newChat);
-      selectedChat = newChat.id;
+    if (!activeChat) {
+      const newChat = {
+        id: Date.now().toString(),
+        title: `Correction ${chats.length + 1}`,
+        feature: 'correct',
+        messages: [],
+      };
+      setChats(prevChats => [newChat, ...prevChats]); // Ajout immuable du nouveau chat
+      setSelectedChat(newChat.id); // Mise à jour du chat sélectionné
+      activeChat = newChat;
     }
 
     const userMessage = { content: input, isUser: true };
-
-    if (activeChat) {
-      activeChat.messages.push(userMessage);
-    }
+    setChats(prevChats =>
+      prevChats.map(chat =>
+        chat.id === activeChat.id
+          ? { ...chat, messages: [...chat.messages, userMessage] } // Mise à jour immuable des messages
+          : chat
+      )
+    );
 
     setIsLoading(true);
     try {
       const correctedMessage = await correctText(input);
-      if (activeChat) {
-        if ('correctedText' in correctedMessage) {
-          activeChat.messages.push({ content: correctedMessage.correctedText, isUser: false });
-        } else {
-          activeChat.messages.push({ content: 'Unexpected response format.', isUser: false });
-        }
-      }
+      const botMessage = 'correctedText' in correctedMessage
+        ? { content: correctedMessage.correctedText, isUser: false }
+        : { content: 'Unexpected response format.', isUser: false };
+      setChats(prevChats =>
+        prevChats.map(chat =>
+          chat.id === activeChat.id
+            ? { ...chat, messages: [...chat.messages, botMessage] } // Ajout immuable du message corrigé
+            : chat
+        )
+      );
     } catch (error) {
       console.error('Erreur lors de la correction:', error);
-      if (activeChat) {
-        activeChat.messages.push({ content: 'Erreur lors de la correction.', isUser: false });
-      }
+      setChats(prevChats =>
+        prevChats.map(chat =>
+          chat.id === activeChat.id
+            ? { ...chat, messages: [...chat.messages, { content: 'Erreur lors de la correction.', isUser: false }] }
+            : chat
+        )
+      );
     } finally {
       setIsLoading(false);
       setInput('');
