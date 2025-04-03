@@ -13,9 +13,9 @@ type Chat = {
 
 type CorrectionProps = {
   chats: Chat[];
-  setChats: React.Dispatch<React.SetStateAction<Chat[]>>; // Ajout de setChats
+  setChats: React.Dispatch<React.SetStateAction<Chat[]>>;
   selectedChat: string | null;
-  setSelectedChat: React.Dispatch<React.SetStateAction<string | null>>; // Ajout de setSelectedChat
+  setSelectedChat: React.Dispatch<React.SetStateAction<string | null>>;
 };
 
 function Correction({ chats, setChats, selectedChat, setSelectedChat }: CorrectionProps) {
@@ -36,8 +36,8 @@ function Correction({ chats, setChats, selectedChat, setSelectedChat }: Correcti
         feature: 'correct',
         messages: [],
       };
-      setChats(prevChats => [newChat, ...prevChats]); // Ajout immuable du nouveau chat
-      setSelectedChat(newChat.id); // Mise à jour du chat sélectionné
+      setChats(prevChats => [newChat, ...prevChats]); 
+      setSelectedChat(newChat.id); 
       activeChat = newChat;
     }
 
@@ -59,7 +59,7 @@ function Correction({ chats, setChats, selectedChat, setSelectedChat }: Correcti
       setChats(prevChats =>
         prevChats.map(chat =>
           chat.id === activeChat.id
-            ? { ...chat, messages: [...chat.messages, botMessage] } // Ajout immuable du message corrigé
+            ? { ...chat, messages: [...chat.messages, botMessage] }
             : chat
         )
       );

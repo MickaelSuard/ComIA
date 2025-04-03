@@ -1,4 +1,4 @@
-import { TranslationResult, CorrectionResult } from '../types';
+import { TranslationResult } from '../types';
 
 const OLLAMA_URL = '/api/generate';
 const OLLAMA_MODEL = 'mistral';
@@ -8,7 +8,6 @@ const generatePrompt = (
   mode: 'translate' | 'correct',
   targetLanguage?: string
 ) => {
-  // Prompt en francais fait n'importe quoi
   if (mode === 'translate') {
     return `You are a professional translator, specialized in accurately translating text while maintaining its original meaning, tone, and context.  
 
@@ -23,61 +22,17 @@ const generatePrompt = (
     """${text}"""`;
   }
 
-  return `Tu es un correcteur professionnel francophone. Examine le texte suivant pour :
-1. Les erreurs grammaticales
-2. Les fautes d'orthographe
-3. La ponctuation
-4. Le style
-5. Le choix des mots
-
-Fournis d'abord la version corrigée du texte.
-Puis, liste chaque correction avec une brève explication en français.
-Format de la réponse :
-
-TEXTE CORRIGÉ :
-[Version corrigée]
-
-CORRECTIONS ET EXPLICATIONS :
-• [Première correction] : [Explication]
-• [Deuxième correction] : [Explication]
-(etc.)
-
-Voici le texte à examiner :
-"""${text}"""`;
+  // Removed correction-related code
+  return '';
 };
 
-const parseResponse = (response: string, mode: 'translate' | 'correct'): { text: string; suggestions?: string[] } => {
-  const cleanResponse = response.trim();
-
-  if (mode === 'translate') {
-    return { text: cleanResponse.split('\n')[0].trim() };
-  }
-
-  const correctedMatch = cleanResponse.match(/TEXTE CORRIGÉ :\s*([\s\S]*?)(?=CORRECTIONS ET EXPLICATIONS :|$)/i);
-  const correctionsMatch = cleanResponse.match(/CORRECTIONS ET EXPLICATIONS :\s*([\s\S]*?)$/i);
-
-  const correctedText = correctedMatch ? correctedMatch[1].trim() : cleanResponse;
-  let suggestions: string[] = [];
-
-  if (correctionsMatch) {
-    suggestions = correctionsMatch[1]
-      .split('\n')
-      .map(line => line.trim())
-      .filter(line => line.startsWith('•'))
-      .map(line => line.substring(1).trim());
-  }
-
-  return {
-    text: correctedText,
-    suggestions: suggestions.length > 0 ? suggestions : undefined
-  };
-};
+// Removed parseResponse function related to correction
 
 export const processText = async (
   text: string,
-  mode: 'translate' | 'correct',
+  mode: 'translate',
   targetLanguage?: string
-): Promise<TranslationResult | CorrectionResult> => {
+): Promise<TranslationResult> => {
   try {
     if (!text.trim()) {
       throw new Error('Le texte ne peut pas être vide');
@@ -114,20 +69,11 @@ export const processText = async (
       throw new Error('Réponse invalide de l\'API Ollama');
     }
 
-    const parsed = parseResponse(data.response, mode);
-
-    if (mode === 'translate') {
-      return {
-        translatedText: parsed.text,
-        sourceLanguage: 'auto',
-        targetLanguage: targetLanguage || 'fr',
-      };
-    } else {
-      return {
-        correctedText: parsed.text,
-        suggestions: parsed.suggestions || [],
-      };
-    }
+    return {
+      translatedText: data.response.trim(),
+      sourceLanguage: 'auto',
+      targetLanguage: targetLanguage || 'fr',
+    };
   } catch (error) {
     console.error('Erreur lors du traitement du texte:', error);
     throw new Error(
