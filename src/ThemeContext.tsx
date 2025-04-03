@@ -25,7 +25,7 @@ const darkThemeClasses: ThemeClasses = {
   buttonBackground: 'bg-gradient-to-r from-blue-600/20 to-indigo-600/20',
   buttonText: 'text-white',
   hoverBackground: 'hover:bg-white/5',
-  inputBackground: 'bg-[#0a0a12]',
+  inputBackground: 'bg-[#1E1E1E]',
   inputBorder: 'border-[#1a1a2e]',
   inputPlaceholder: 'placeholder-gray-500',
 };
