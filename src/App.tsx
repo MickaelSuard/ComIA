@@ -7,6 +7,7 @@ import LogoWhite from '../logo-white.svg';
 import Transcription from './components/Transcription';
 import Correction from './components/Correction';
 import Search from './ui/Search';
+import DocumentSummary from './components/Document';
 
 const LoadingContext = createContext<{ isLoading: boolean; setLoading: (loading: boolean) => void }>({
   isLoading: false,
@@ -52,6 +53,7 @@ function AppContent() {
     { id: 'translate', name: 'Traduction', icon: Globe2 },
     { id: 'correct', name: 'Correction', icon: FileText },
     { id: 'transcribe', name: 'Transcription Audio', icon: Mic },
+    { id: 'document', name: 'Document', icon: FileText }, // New feature
   ];
 
   const handleFeatureChange = (featureId: string) => {
@@ -207,7 +209,14 @@ function AppContent() {
 
           {/* Messages */}
           <div className={`flex-1 overflow-y-auto p-6 space-y-6`}>
-            {activeFeature === 'transcribe' ? (
+            {activeFeature === 'document' ? (
+              <DocumentSummary
+                chats={chats}
+                setChats={setChats}
+                selectedChat={selectedChat}
+                setSelectedChat={setSelectedChat}
+              />
+            ) : activeFeature === 'transcribe' ? (
               <Transcription
                 chats={chats}
                 setChats={setChats}
