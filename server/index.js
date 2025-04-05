@@ -199,6 +199,37 @@ app.post('/api/summarize', upload.single('document'), async (req, res) => {
     }
 });
 
+app.post('/api/ask', async (req, res) => {
+    const { summary, question } = req.body;
+  
+    if (!summary || !question) {
+      return res.status(400).json({ error: "Résumé et question requis." });
+    }
+  
+    try {
+      const response = await fetch('http://localhost:11434/api/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: 'mistral:instruct',
+          prompt: `Voici un résumé de document :\n\n${summary}\n\nRéponds précisément à cette question basée uniquement sur ce résumé (en français) : "${question}"`,
+          stream: false,
+          options: {
+            temperature: 0.2,
+            top_p: 0.9,
+            top_k: 50,
+          },
+        }),
+      });
+  
+      const data = await response.json();
+      return res.json({ answer: data.response });
+    } catch (error) {
+      console.error("Erreur API /ask:", error);
+      res.status(500).json({ error: "Erreur lors de la génération de la réponse." });
+    }
+});
+
 
 
 // Démarrage du serveur

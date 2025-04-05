@@ -5,6 +5,7 @@ import { useTheme } from '../ThemeContext';
 import { Worker, Viewer } from '@react-pdf-viewer/core'; // Import de react-pdf-viewer
 import '@react-pdf-viewer/core/lib/styles/index.css'; // Styles nécessaires pour react-pdf-viewer
 import '@react-pdf-viewer/default-layout/lib/styles/index.css'; // Styles par défaut
+import Search from '../ui/Search';
 
 
 type Chat = {
@@ -26,6 +27,7 @@ function DocumentSummary({ chats, setChats, selectedChat, setSelectedChat }: Doc
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isLoading, setLoading] = useState(false);
   const { classes } = useTheme();
+  const [inputValue, setInputValue] = useState('');
 
   // const [fileUrl, setFileUrl] = useState<string | null>(null);
   // const [pdfFile, setPdfFile] = useState<File | null>(null);
@@ -74,6 +76,14 @@ function DocumentSummary({ chats, setChats, selectedChat, setSelectedChat }: Doc
 
   const activeChat = chats.find((chat) => chat.id === selectedChat);
 
+  const handleCopy = (text: string) => {
+    navigator.clipboard.writeText(text).then(() => {
+      alert('Texte copié dans le presse-papiers !');
+    }).catch(err => {
+      console.error('Erreur lors de la copie du texte :', err);
+    });
+  };
+
   return (
     <>
       {isLoading && <LoadingPage />}
@@ -88,9 +98,10 @@ function DocumentSummary({ chats, setChats, selectedChat, setSelectedChat }: Doc
             )}
           </div>
 
-          {/* Résumé à droite */}
-          <div className={`w-1/2 overflow-hidden max-h-full p-5 ${classes.inputBackground} ${classes.text}`}>
+          {/* Résumé et chat à droite */}
+          <div className={`w-1/2 overflow-hidden max-h-full p-5  ${classes.text}`}>
             <div className="flex flex-col h-full space-y-4 overflow-auto">
+              {/* Bouton copier résumé */}
               <div className="flex-shrink-0">
                 <button
                   onClick={() => navigator.clipboard.writeText(activeChat.messages[0].content)}
@@ -100,9 +111,84 @@ function DocumentSummary({ chats, setChats, selectedChat, setSelectedChat }: Doc
                   Copier le résumé
                 </button>
               </div>
-              <div className="overflow-auto whitespace-pre-wrap break-words">
-                <p>{activeChat.messages[0].content}</p>
+
+              {/* Zone de chat */}
+              <div className="flex-1 overflow-auto space-y-4">
+              {activeChat.messages.map((message, index) => (
+                <div
+                  key={index}
+                  className={`flex ${message.isUser ? "justify-end" : "justify-start"}`}
+                >
+                  <div
+                    className={`max-w-[70%] rounded-xl p-4 text-sm ${message.isUser
+                      ? `${classes.buttonBackground} shadow-md`
+                      : `${classes.inputBackground} ${classes.border} shadow-md`
+                      } relative`}
+                  >
+                    {!message.isUser && (
+                      <div className="flex items-center">
+                        <div className="flex-1" dangerouslySetInnerHTML={{ __html: message.content }} />
+                        <button
+                          onClick={() => handleCopy(message.content)}
+                          className={`ml-2 p-1 text-gray-500 hover:text-gray-700 ${classes.text} rounded-full shadow-sm`}
+                        >
+                          <Clipboard size={16} />
+                        </button>
+                      </div>
+                    )}
+                    {message.isUser && (
+                      message.content
+                    )}
+                  </div>
+                </div>
+              ))}
               </div>
+
+              {/* Champ d’entrée utilisateur */}
+              <Search
+                value={inputValue}
+                onChange={(e) => setInputValue(e.target.value)}
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  const question = inputValue.trim();
+                  if (!question) return;
+
+                  const updatedChat = { ...activeChat };
+                  updatedChat.messages.push({ content: question, isUser: true });
+                  setChats((prev) =>
+                    prev.map((c) => (c.id === updatedChat.id ? updatedChat : c))
+                  );
+
+                  setInputValue('');
+                  fetch('http://localhost:3001/api/ask', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                      summary: activeChat.messages[0].content, // résumé existant
+                      question,
+                    }),
+                  })
+                    .then((response) => response.json())
+                    .then((data) => {
+                      updatedChat.messages.push({ content: data.answer, isUser: false });
+                      setChats((prev) =>
+                        prev.map((c) => (c.id === updatedChat.id ? updatedChat : c))
+                      );
+                    })
+                    .catch(() => {
+                      updatedChat.messages.push({
+                        content: "❌ Une erreur est survenue lors de la requête.",
+                        isUser: false,
+                      });
+                      setChats((prev) =>
+                        prev.map((c) => (c.id === updatedChat.id ? updatedChat : c))
+                      );
+                    });
+                }}
+                placeholder="Posez une question sur le document..."
+                isLoading={false}
+                classes={classes}
+              />
             </div>
           </div>
 
