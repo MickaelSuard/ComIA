@@ -27,8 +27,8 @@ function DocumentSummary({ chats, setChats, selectedChat, setSelectedChat }: Doc
   const [isLoading, setLoading] = useState(false);
   const { classes } = useTheme();
 
-  const [fileUrl, setFileUrl] = useState<string | null>(null);
-  const [pdfFile, setPdfFile] = useState<File | null>(null);
+  // const [fileUrl, setFileUrl] = useState<string | null>(null);
+  // const [pdfFile, setPdfFile] = useState<File | null>(null);
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
