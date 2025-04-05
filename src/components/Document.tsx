@@ -12,6 +12,7 @@ type Chat = {
   title: string;
   feature: string;
   messages: { content: string; isUser: boolean }[];
+  pdfUrl?: string;
 };
 
 type DocumentProps = {
@@ -56,11 +57,12 @@ function DocumentSummary({ chats, setChats, selectedChat, setSelectedChat }: Doc
           title: file.name,
           feature: 'document',
           messages: [{ content: data.summary, isUser: false }],
+          pdfUrl: URL.createObjectURL(file),
         };
         setChats((prev) => [newChat, ...prev]);
         setSelectedChat(newChat.id);
-        setFileUrl(URL.createObjectURL(file));
-        setPdfFile(file); // Sauvegarde du fichier PDF pour affichage
+        // setFileUrl(URL.createObjectURL(file));
+        // setPdfFile(file); // Sauvegarde du fichier PDF pour affichage
       } catch (error) {
         console.error('Erreur:', error);
         alert('Une erreur est survenue lors du résumé.');
@@ -79,15 +81,15 @@ function DocumentSummary({ chats, setChats, selectedChat, setSelectedChat }: Doc
         <div className="flex gap-6 p-6 h-full ">
           {/* PDF à gauche avec react-pdf-viewer */}
           <div className="w-1/2 overflow-auto bg-white rounded-2xl p-4 shadow max-h-full">
-            {pdfFile && (
+            {activeChat.pdfUrl && (
               <Worker workerUrl="https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.worker.min.js">
-                <Viewer fileUrl={fileUrl || ''} />
+                <Viewer fileUrl={activeChat.pdfUrl} />
               </Worker>
             )}
           </div>
 
           {/* Résumé à droite */}
-          <div className={`w-1/2 text-white overflow-hidden max-h-full p-5 ${classes.inputBackground}`}>
+          <div className={`w-1/2 overflow-hidden max-h-full p-5 ${classes.inputBackground} ${classes.text}`}>
             <div className="flex flex-col h-full space-y-4 overflow-auto">
               <div className="flex-shrink-0">
                 <button
