@@ -2,6 +2,10 @@ import React, { useRef, useState } from 'react';
 import { Upload, Clipboard } from 'lucide-react';
 import LoadingPage from './LoadingPage';
 import { useTheme } from '../ThemeContext';
+import { Worker, Viewer } from '@react-pdf-viewer/core'; // Import de react-pdf-viewer
+import '@react-pdf-viewer/core/lib/styles/index.css'; // Styles nécessaires pour react-pdf-viewer
+import '@react-pdf-viewer/default-layout/lib/styles/index.css'; // Styles par défaut
+
 
 type Chat = {
   id: string;
@@ -22,10 +26,13 @@ function DocumentSummary({ chats, setChats, selectedChat, setSelectedChat }: Doc
   const [isLoading, setLoading] = useState(false);
   const { classes } = useTheme();
 
+  const [fileUrl, setFileUrl] = useState<string | null>(null);
+  const [pdfFile, setPdfFile] = useState<File | null>(null);
+
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      console.log('File selected:', file.name);
+      console.log('Fichier sélectionné:', file.name);
 
       const formData = new FormData();
       formData.append('document', file);
@@ -52,6 +59,8 @@ function DocumentSummary({ chats, setChats, selectedChat, setSelectedChat }: Doc
         };
         setChats((prev) => [newChat, ...prev]);
         setSelectedChat(newChat.id);
+        setFileUrl(URL.createObjectURL(file));
+        setPdfFile(file); // Sauvegarde du fichier PDF pour affichage
       } catch (error) {
         console.error('Erreur:', error);
         alert('Une erreur est survenue lors du résumé.');
@@ -67,17 +76,37 @@ function DocumentSummary({ chats, setChats, selectedChat, setSelectedChat }: Doc
     <>
       {isLoading && <LoadingPage />}
       {selectedChat && activeChat ? (
-        <div className="p-6">
-          <button
-            onClick={() => navigator.clipboard.writeText(activeChat.messages[0].content)}
-            className="mb-4 flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-blue-500 to-indigo-500 rounded-lg shadow-lg hover:from-blue-600 hover:to-indigo-600 transition-all duration-300"
-          >
-            <Clipboard size={16} />
-            Copier le résumé
-          </button>
-          <p>{activeChat.messages[0].content}</p>
+        <div className="flex gap-6 p-6 h-full ">
+          {/* PDF à gauche avec react-pdf-viewer */}
+          <div className="w-1/2 overflow-auto bg-white rounded-2xl p-4 shadow max-h-full">
+            {pdfFile && (
+              <Worker workerUrl="https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.worker.min.js">
+                <Viewer fileUrl={fileUrl || ''} />
+              </Worker>
+            )}
+          </div>
+
+          {/* Résumé à droite */}
+          <div className={`w-1/2 text-white overflow-hidden max-h-full p-5 ${classes.inputBackground}`}>
+            <div className="flex flex-col h-full space-y-4 overflow-auto">
+              <div className="flex-shrink-0">
+                <button
+                  onClick={() => navigator.clipboard.writeText(activeChat.messages[0].content)}
+                  className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-blue-500 to-indigo-500 rounded-lg shadow-lg hover:from-blue-600 hover:to-indigo-600 transition-all duration-300"
+                >
+                  <Clipboard size={16} />
+                  Copier le résumé
+                </button>
+              </div>
+              <div className="overflow-auto whitespace-pre-wrap break-words">
+                <p>{activeChat.messages[0].content}</p>
+              </div>
+            </div>
+          </div>
+
         </div>
       ) : (
+        // Interface d’upload
         <div className="flex-1 space-x-6 h-full flex flex-col items-center justify-center">
           <div
             className={`w-full max-w-2xl p-8 rounded-3xl shadow-2xl border ${classes.border} ${classes.background}`}
@@ -98,8 +127,7 @@ function DocumentSummary({ chats, setChats, selectedChat, setSelectedChat }: Doc
                   <Upload size={40} className="text-blue-400" />
                 </div>
                 <div className="text-gray-300 text-center">
-                  <span className="font-medium text-blue-400">Cliquez pour télécharger</span> ou
-                  glissez-déposez
+                  <span className="font-medium text-blue-400">Cliquez pour télécharger</span> ou glissez-déposez
                   <div className="text-sm text-gray-500 mt-2">Formats acceptés : TXT, PDF, DOCX</div>
                 </div>
               </div>

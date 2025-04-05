@@ -251,7 +251,7 @@ function AppContent() {
           </div>
 
           {/* Input for other features */}
-          {activeFeature !== 'transcribe' && activeFeature !== 'correct' && (
+          {activeFeature !== 'transcribe' && activeFeature !== 'document' && activeFeature !== 'correct' && (
             <div className="p-4 ">
               <Search
                 value={input}

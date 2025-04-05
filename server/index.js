@@ -8,6 +8,11 @@ import { exec } from 'node:child_process';
 import fs from 'node:fs/promises';
 import { reformulateText } from '../src/services/reformulateText.js';
 
+import { PDFLoader } from "@langchain/community/document_loaders/fs/pdf";
+import { RecursiveCharacterTextSplitter } from "langchain/text_splitter";
+
+import { BartTokenizer, BartForConditionalGeneration } from '@xenova/transformers';
+
 const app = express();
 const upload = multer({ dest: 'uploads/' });
 const PORT = 3001;
@@ -86,79 +91,82 @@ app.post('/api/transcribe', upload.single('audio'), async (req, res) => {
     }
 });
 
-// Fonction pour extraire le texte en fonction du type de fichier
+// Fonction pour extraire le texte du fichier sans découper par page
 const extractText = async (filePath, mimeType) => {
     try {
-        if (mimeType === 'text/plain') {
-            return await fs.readFile(filePath, 'utf-8');
-        }
-        else if (mimeType === 'application/pdf') {
-            const dataBuffer = await fs.readFile(filePath);
-            const data = await pdfParse(dataBuffer);
-            return data.text;
-        }
-        else if (mimeType === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
-            const dataBuffer = await fs.readFile(filePath);
-            const result = await mammoth.extractRawText({ buffer: dataBuffer });
-            return result.value;
-        }
-        else if (mimeType === 'application/vnd.ms-excel' || mimeType === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet') {
-            // Lecture du fichier Excel
-            const workbook = XLSX.readFile(filePath);
-            let text = '';
+        if (mimeType === "text/plain") {
+            return await fs.readFile(filePath, "utf-8");
+        } else if (mimeType === "application/pdf") {
+            console.log("📄 PDF détecté, chargement avec LangChain...");
+            const loader = new PDFLoader(filePath);
+            const docs = await loader.load();
 
-            // Boucle sur toutes les feuilles du fichier
-            workbook.SheetNames.forEach(sheetName => {
-                const sheet = workbook.Sheets[sheetName];
-                const sheetData = XLSX.utils.sheet_to_csv(sheet); // Convertir en texte
-                text += `\n--- Feuille: ${sheetName} ---\n${sheetData}`;
-            });
-
-            return text;
-        }
-        else {
-            throw new Error('Format de fichier non pris en charge.');
+            // Extraire tout le texte sans découper par page
+            const fullText = docs.map(doc => doc.pageContent).join("\n\n");
+            return fullText;
+        } else {
+            throw new Error("Format non pris en charge.");
         }
     } catch (error) {
-        console.error('Erreur lors de l’extraction du texte:', error);
+        console.error("Erreur lors de l'extraction du texte:", error);
         throw error;
     }
 };
 
-// Fonction de résumé avec Ollama Mistral
-const summarizeText = async (text) => {
-    // console.log('Texte à résumer:', text); // Affiche le texte à résumer dans la console
-    try {
-        const response = await fetch('http://localhost:11434/api/generate', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                model: 'mistral',
-                prompt: `Résumé ce texte de manière concise :\n${text}`,
-                stream: false,
-                options: {
-                    temperature: 0.3,
-                    top_p: 0.95,
-                    top_k: 40,
-                    num_predict: 1000,
-                },
-            }),
-        });
-
-        if (!response.ok) {
-            throw new Error(`Erreur HTTP: ${response.status}`);
-        }
-
-        const data = await response.json();
-        return data.response; // Adapte cette ligne si le JSON a une structure différente
-    } catch (error) {
-        console.error('Erreur lors du résumé du texte:', error);
-        throw error;
-    }
+// Fonction pour découper un texte en sections basées sur des paragraphes
+const splitTextIntoSections = (text) => {
+    const paragraphs = text.split('\n\n'); // Découpe le texte par paragraphes
+    return paragraphs;
 };
 
+// Fonction pour résumer plusieurs sections en une seule requête
+const summarizeTextInSections = async (text) => {
+    const sections = splitTextIntoSections(text);
+    const summaries = [];
+    const chunkSize = 15; // Nombre de sections à regrouper par requête
+    let chunk = '';
+
+    // Regrouper les sections par bloc
+    for (let i = 0; i < sections.length; i++) {
+        chunk += sections[i] + "\n\n";
+
+        // Si on atteint la taille maximale du chunk, on envoie la requête
+        if ((i + 1) % chunkSize === 0 || i === sections.length - 1) {
+            try {
+                console.log("✍️ Envoi du bloc à Ollama (Mistral)...", chunk);
+                const response = await fetch("http://localhost:11434/api/generate", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        model: "mistral:instruct",
+                        prompt: `Fais un résumé en français uniquement, sans aucune phrase en anglais, des sections suivantes. Ne donne pas ton opinion, uniquement un résumé des points clés :\n\n${chunk}`,
+                        stream: false,
+                        options: {
+                            temperature: 0.1,
+                            top_p: 0.85,
+                            top_k: 50,
+                        },
+                    }),
+                });
+
+                if (!response.ok) throw new Error(`Erreur HTTP: ${response.status}`);
+                const data = await response.json();
+                summaries.push(data.response); // Ajoute le résumé du bloc
+            } catch (error) {
+                console.error("❌ Erreur lors du résumé du bloc:", error);
+                throw error;
+            }
+
+            // Réinitialiser le bloc pour le prochain ensemble de sections
+            chunk = '';
+        }
+    }
+
+    // Assemble tous les résumés des blocs
+    return summaries.join("\n\n");
+};
+
+// Fonction principale pour extraire et résumer le texte du fichier
 app.post('/api/summarize', upload.single('document'), async (req, res) => {
     const filePath = req.file?.path;
     const mimeType = req.file?.mimetype;
@@ -170,8 +178,10 @@ app.post('/api/summarize', upload.single('document'), async (req, res) => {
     try {
         console.log(mimeType); // Affiche le type MIME du fichier dans la console
         const fileContent = await extractText(filePath, mimeType);
-        // console.log('Contenu du fichier:', fileContent); // Affiche le contenu du fichier dans la console
-        const summary = await summarizeText(fileContent);
+        console.log('Contenu extrait du fichier:', fileContent); // Affiche tout le texte extrait du fichier dans la console
+
+        // Résumer le texte en sections et assembler le résumé global
+        const summary = await summarizeTextInSections(fileContent);
 
         if (!summary) {
             throw new Error('Le résumé a échoué. Aucune donnée reçue.');
@@ -188,6 +198,8 @@ app.post('/api/summarize', upload.single('document'), async (req, res) => {
         }
     }
 });
+
+
 
 // Démarrage du serveur
 app.listen(PORT, () => {
