@@ -120,7 +120,7 @@ const summarizeTextInSections = async (text, question) => {
 
     const sections = splitTextIntoSections(text);
     const relevantInformation = [];
-    const chunkSize = 10;
+    const chunkSize = 5;
     let chunk = '';
 
     for (let i = 0; i < sections.length; i++) {
@@ -139,6 +139,14 @@ const summarizeTextInSections = async (text, question) => {
 
                         ❗️Si aucune information claire ou directe ne permet de répondre, ne réponds rien. Ne donne aucune réponse vague ou partielle.
 
+                        ⚠️ Règles à respecter impérativement :
+
+                        1. **Tu dois ignorer complètement la question** si elle est trop vague, trop générale, ou si les extraits ne donnent pas assez de contexte pour y répondre avec certitude.
+                        2. **Ne réponds que si les extraits contiennent tous les éléments nécessaires pour répondre précisément et sans interprétation**.
+                        3. **Si la réponse nécessite une supposition, une interprétation, une généralisation ou une déduction implicite, NE RÉPONDS PAS**.
+                        4. **Ne reformule pas la question, ne dis pas que l'information est absente, et surtout NE RÉPONDS RIEN dans ce cas. Reste silencieux.**
+                        5. **Si le résumé ne fournit aucune information exacte pour répondre à la question**, réponds par **"Je ne sais pas"**, sans ajouter de commentaire supplémentaire.
+
                         Question : "${question}"
 
                         Réponse (seulement si elle est parfaitement justifiée par les extraits) :`;
@@ -152,7 +160,7 @@ const summarizeTextInSections = async (text, question) => {
                         stream: false,
                         options: {
                             temperature: 0.1,
-                            top_p: 0.85,
+                            top_p: 0.1,
                             top_k: 50,
                         },
                     }),
@@ -163,7 +171,7 @@ const summarizeTextInSections = async (text, question) => {
                 const answer = data.response.trim();
 
                 // Si le modèle a vraiment donné une réponse utile, on la garde
-                if (answer && answer.length > 0 && !answer.toLowerCase().startsWith("aucune information")) {
+                if (answer && answer.length > 0 && !answer.toLowerCase().startsWith("Je ne sais pas.")) {
                     relevantInformation.push(answer);
                 }
 
@@ -240,7 +248,20 @@ app.post('/api/ask', async (req, res) => {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 model: 'mistral',
-                prompt: `Voici un résumé de document (synthétisé de manière concise) :\n\n${summaryOllama}\n\nRéponds à la question suivante basée uniquement sur ce résumé (en français, de manière précise et factuelle) : "${question}"`,
+                prompt: `Voici un résumé du document :
+                ${summaryOllama}
+                
+                Ta tâche est de répondre à la question suivante **uniquement si le résumé contient des informations exactes et claires qui permettent de répondre avec certitude**.
+                
+                ⚠️ Règles strictes :
+                - Si tu trouves des informations **exactes et précises** qui répondent à la question, transmets-les **clairement et directement**.
+                - **Ne fais aucune supposition, ne reformule pas, ne donne pas d'interprétation**. La réponse doit être **directe, factuelle et exacte**.
+                - **Si le résumé ne fournit aucune information exacte pour répondre à la question**, **ne réponds rien du tout**, sans ajouter de commentaire tel que "Aucune information pertinente", "Je ne sais pas", ou autre phrase similaire. Il ne doit pas y avoir de réponse si aucune information précise n'est disponible.
+                
+                Question : "${question}"
+                
+                Réponse (uniquement si des informations exactes sont présentes dans le résumé) :
+                `,
                 stream: false,
                 options: {
                     temperature: 0.1,
