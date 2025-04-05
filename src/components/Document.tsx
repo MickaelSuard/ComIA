@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Upload, Clipboard } from 'lucide-react';
 import LoadingPage from './LoadingPage';
 import { useTheme } from '../ThemeContext';
@@ -158,6 +158,15 @@ function DocumentSummary({ chats, setChats, selectedChat, setSelectedChat }: Doc
     });
   };
 
+  const messagesEndRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    // Lorsque les messages sont mis à jour, faire défiler vers le bas
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [activeChat?.messages]);
+
   return (
     <>
       {isLoading && <LoadingPage />}
@@ -214,6 +223,7 @@ function DocumentSummary({ chats, setChats, selectedChat, setSelectedChat }: Doc
                         message.content
                       )}
                     </div>
+                    <div ref={messagesEndRef} />
                   </div>
                 ))}
 
