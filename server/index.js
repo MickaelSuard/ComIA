@@ -113,33 +113,42 @@ const extractText = async (filePath, mimeType) => {
     }
 };
 
-// Fonction pour découper un texte en sections basées sur des paragraphes
-const splitTextIntoSections = (text) => {
-    const paragraphs = text.split('\n\n'); // Découpe le texte par paragraphes
-    return paragraphs;
-};
+const summarizeTextInSections = async (text, question) => {
+    if (!question || typeof question !== 'string' || question.trim() === '') {
+        throw new Error("La question doit être une chaîne de caractères valide.");
+    }
 
-// Fonction pour résumer plusieurs sections en une seule requête
-const summarizeTextInSections = async (text) => {
     const sections = splitTextIntoSections(text);
-    const summaries = [];
-    const chunkSize = 15; // Nombre de sections à regrouper par requête
+    const relevantInformation = [];
+    const chunkSize = 10;
     let chunk = '';
 
-    // Regrouper les sections par bloc
     for (let i = 0; i < sections.length; i++) {
         chunk += sections[i] + "\n\n";
 
-        // Si on atteint la taille maximale du chunk, on envoie la requête
         if ((i + 1) % chunkSize === 0 || i === sections.length - 1) {
             try {
-                console.log("✍️ Envoi du bloc à Ollama (Mistral)...", chunk);
+                const prompt = `
+                        Tu es un expert en analyse documentaire. Tu vas lire plusieurs extraits d’un document.
+
+                        ------------------
+                        ${chunk}
+                        ------------------
+
+                        Ta tâche : répondre à la question suivante uniquement si les informations présentes dans les extraits le permettent de manière certaine.
+
+                        ❗️Si aucune information claire ou directe ne permet de répondre, ne réponds rien. Ne donne aucune réponse vague ou partielle.
+
+                        Question : "${question}"
+
+                        Réponse (seulement si elle est parfaitement justifiée par les extraits) :`;
+
                 const response = await fetch("http://localhost:11434/api/generate", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({
-                        model: "mistral:instruct",
-                        prompt: `Fais un résumé en français uniquement, sans aucune phrase en anglais, des sections suivantes. Ne donne pas ton opinion, uniquement un résumé des points clés :\n\n${chunk}`,
+                        model: "mistral",
+                        prompt,
                         stream: false,
                         options: {
                             temperature: 0.1,
@@ -151,20 +160,34 @@ const summarizeTextInSections = async (text) => {
 
                 if (!response.ok) throw new Error(`Erreur HTTP: ${response.status}`);
                 const data = await response.json();
-                summaries.push(data.response); // Ajoute le résumé du bloc
+                const answer = data.response.trim();
+
+                // Si le modèle a vraiment donné une réponse utile, on la garde
+                if (answer && answer.length > 0 && !answer.toLowerCase().startsWith("aucune information")) {
+                    relevantInformation.push(answer);
+                }
+
             } catch (error) {
-                console.error("❌ Erreur lors du résumé du bloc:", error);
+                console.error("❌ Erreur lors de la demande au modèle:", error);
                 throw error;
             }
 
-            // Réinitialiser le bloc pour le prochain ensemble de sections
-            chunk = '';
+            chunk = ''; // Réinitialise pour le prochain groupe
         }
     }
 
-    // Assemble tous les résumés des blocs
-    return summaries.join("\n\n");
+    return relevantInformation.join("\n\n");
 };
+
+
+
+// Fonction pour diviser un texte en sections (implémentation simplifiée)
+const splitTextIntoSections = (text) => {
+    const sections = text.split("\n\n");
+    return sections;
+};
+
+
 
 // Fonction principale pour extraire et résumer le texte du fichier
 app.post('/api/summarize', upload.single('document'), async (req, res) => {
@@ -176,16 +199,17 @@ app.post('/api/summarize', upload.single('document'), async (req, res) => {
     }
 
     try {
-        console.log(mimeType); // Affiche le type MIME du fichier dans la console
+        // console.log(mimeType); // Affiche le type MIME du fichier dans la console
         const fileContent = await extractText(filePath, mimeType);
-        console.log('Contenu extrait du fichier:', fileContent); // Affiche tout le texte extrait du fichier dans la console
+        // console.log('Contenu extrait du fichier:', fileContent);
 
         // Résumer le texte en sections et assembler le résumé global
-        const summary = await summarizeTextInSections(fileContent);
+        // const summary = await summarizeTextInSections(fileContent);
 
-        if (!summary) {
-            throw new Error('Le résumé a échoué. Aucune donnée reçue.');
-        }
+        // if (!summary) {
+        //     throw new Error('Le résumé a échoué. Aucune donnée reçue.');
+        // }
+        const summary = fileContent;
 
         res.json({ summary });
     } catch (error) {
@@ -201,34 +225,39 @@ app.post('/api/summarize', upload.single('document'), async (req, res) => {
 
 app.post('/api/ask', async (req, res) => {
     const { summary, question } = req.body;
-  
+
+    // Vérification des données reçues
     if (!summary || !question) {
-      return res.status(400).json({ error: "Résumé et question requis." });
+        return res.status(400).json({ error: "Résumé et question requis." });
     }
-  
+
     try {
-      const response = await fetch('http://localhost:11434/api/generate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          model: 'mistral:instruct',
-          prompt: `Voici un résumé de document :\n\n${summary}\n\nRéponds précisément à cette question basée uniquement sur ce résumé (en français) : "${question}"`,
-          stream: false,
-          options: {
-            temperature: 0.2,
-            top_p: 0.9,
-            top_k: 50,
-          },
-        }),
-      });
-  
-      const data = await response.json();
-      return res.json({ answer: data.response });
+        const summaryOllama = await summarizeTextInSections(summary, question);
+        console.log(summaryOllama); // Affiche le résumé et la question dans la console
+
+        const response = await fetch('http://localhost:11434/api/generate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                model: 'mistral',
+                prompt: `Voici un résumé de document (synthétisé de manière concise) :\n\n${summaryOllama}\n\nRéponds à la question suivante basée uniquement sur ce résumé (en français, de manière précise et factuelle) : "${question}"`,
+                stream: false,
+                options: {
+                    temperature: 0.1,
+                    top_p: 0.85,
+                    top_k: 50,
+                },
+            }),
+        });
+
+        const data = await response.json();
+        return res.json({ answer: data.response });
     } catch (error) {
-      console.error("Erreur API /ask:", error);
-      res.status(500).json({ error: "Erreur lors de la génération de la réponse." });
+        console.error("Erreur API /ask:", error);
+        res.status(500).json({ error: "Erreur lors de la génération de la réponse." });
     }
 });
+
 
 
 
