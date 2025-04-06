@@ -91,27 +91,7 @@ app.post('/api/transcribe', upload.single('audio'), async (req, res) => {
     }
 });
 
-// Fonction pour extraire le texte du fichier sans découper par page
-const extractText = async (filePath, mimeType) => {
-    try {
-        if (mimeType === "text/plain") {
-            return await fs.readFile(filePath, "utf-8");
-        } else if (mimeType === "application/pdf") {
-            console.log("📄 PDF détecté, chargement avec LangChain...");
-            const loader = new PDFLoader(filePath);
-            const docs = await loader.load();
 
-            // Extraire tout le texte sans découper par page
-            const fullText = docs.map(doc => doc.pageContent).join("\n\n");
-            return fullText;
-        } else {
-            throw new Error("Format non pris en charge.");
-        }
-    } catch (error) {
-        console.error("Erreur lors de l'extraction du texte:", error);
-        throw error;
-    }
-};
 
 const summarizeTextInSections = async (text, question) => {
     if (!question || typeof question !== 'string' || question.trim() === '') {
@@ -195,7 +175,27 @@ const splitTextIntoSections = (text) => {
     return sections;
 };
 
+// Fonction pour extraire le texte du fichier sans découper par page
+const extractText = async (filePath, mimeType) => {
+    try {
+        if (mimeType === "text/plain") {
+            return await fs.readFile(filePath, "utf-8");
+        } else if (mimeType === "application/pdf") {
+            console.log("📄 PDF détecté, chargement avec LangChain...");
+            const loader = new PDFLoader(filePath);
+            const docs = await loader.load();
 
+            // Extraire tout le texte sans découper par page
+            const fullText = docs.map(doc => doc.pageContent).join("\n\n");
+            return fullText;
+        } else {
+            throw new Error("Format non pris en charge.");
+        }
+    } catch (error) {
+        console.error("Erreur lors de l'extraction du texte:", error);
+        throw error;
+    }
+};
 
 // Fonction principale pour extraire et résumer le texte du fichier
 app.post('/api/summarize', upload.single('document'), async (req, res) => {
