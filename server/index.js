@@ -120,7 +120,7 @@ const summarizeTextInSections = async (text, question) => {
 
     const sections = splitTextIntoSections(text);
     const relevantInformation = [];
-    const chunkSize = 5;
+    const chunkSize = 2;
     let chunk = '';
 
     for (let i = 0; i < sections.length; i++) {
@@ -161,7 +161,7 @@ const summarizeTextInSections = async (text, question) => {
                         options: {
                             temperature: 0.1,
                             top_p: 0.1,
-                            top_k: 50,
+                            top_k: 0.1,
                         },
                     }),
                 });
@@ -171,7 +171,7 @@ const summarizeTextInSections = async (text, question) => {
                 const answer = data.response.trim();
 
                 // Si le modèle a vraiment donné une réponse utile, on la garde
-                if (answer && answer.length > 0 && !answer.toLowerCase().startsWith("Je ne sais pas.")) {
+                if (answer && answer.length > 0 && !answer.toLowerCase().includes("je ne sais pas")) {
                     relevantInformation.push(answer);
                 }
 
@@ -265,8 +265,8 @@ app.post('/api/ask', async (req, res) => {
                 stream: false,
                 options: {
                     temperature: 0.1,
-                    top_p: 0.85,
-                    top_k: 50,
+                    top_p: 0.1,
+                    top_k: 0.1,
                 },
             }),
         });

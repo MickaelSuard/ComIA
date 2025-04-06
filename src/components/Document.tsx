@@ -106,7 +106,6 @@ function DocumentSummary({ chats, setChats, selectedChat, setSelectedChat }: Doc
 
     setInputValue('');
     setLoadingMessage(true);
-
     try {
       const response = await fetch('http://localhost:3001/api/ask', {
         method: 'POST',

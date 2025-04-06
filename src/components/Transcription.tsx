@@ -44,7 +44,7 @@ function Transcription({
 
       setLoading(true);
       try {
-        const response = await fetch('http://localhost:3001/api/summarize', {
+        const response = await fetch('http://localhost:3001/api/transcribe', {
           method: 'POST',
           body: formData,
         });
