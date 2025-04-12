@@ -1,9 +1,9 @@
 import React, { useState, createContext, useContext } from 'react';
 import { MessageSquare, Globe2, FileText, Mic, Menu, Bot } from 'lucide-react';
-import { ThemeProvider, useTheme } from './ThemeContext'; 
-import LoadingPage from './components/LoadingPage'; 
-import LogoColor from '../logo-color.png'; 
-import LogoWhite from '../logo-white.svg'; 
+import { ThemeProvider, useTheme } from './ThemeContext';
+import LoadingPage from './components/LoadingPage';
+import LogoColor from '../logo-color.png';
+import LogoWhite from '../logo-white.svg';
 import Transcription from './components/Transcription';
 import Correction from './components/Correction';
 import Search from './ui/Search';
@@ -11,7 +11,7 @@ import DocumentSummary from './components/Document';
 
 const LoadingContext = createContext<{ isLoading: boolean; setLoading: (loading: boolean) => void }>({
   isLoading: false,
-  setLoading: () => {},
+  setLoading: () => { },
 });
 
 function LoadingProvider({ children }: { children: React.ReactNode }) {
@@ -66,7 +66,7 @@ function AppContent() {
     setActiveFeature(chats.find(chat => chat.id === chatId)?.feature || ''); // Ensure only one is active
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!input.trim()) return;
 
@@ -82,22 +82,75 @@ function AppContent() {
       setSelectedChat(newChat.id);
     }
 
-    const newMessage: Message = {
+    const userMessage: Message = {
       content: input,
       isUser: true
     };
 
+    // Ajout du message utilisateur
+    const chatId = selectedChat || (newChat && newChat.id);
     setChats(prevChats => prevChats.map(chat => {
-      if (chat.id === (selectedChat || (newChat && newChat.id))) {
+      if (chat.id === chatId) {
         return {
           ...chat,
-          messages: [...chat.messages, newMessage]
+          messages: [...chat.messages, userMessage]
         };
       }
       return chat;
     }));
 
     setInput('');
+
+    try {
+      // Appel à l'API Express `/search`
+      const response = await fetch('http://localhost:3001/api/search', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ query: input })
+      });
+
+      const data = await response.json();
+
+      // Traiter les sources sous forme de liste
+      const sourcesList = data.sources.map((source: string, index: number) => {
+        return `${index + 1}. [${source}](${source})`;  // Format de liste avec lien cliquable
+      }).join('\n');  // Joindre les sources avec des retours à la ligne
+
+      // Ajouter les sources à la fin du résumé
+      const resultWithSources = `${data.result}\n\nSources:\n${sourcesList}`;
+
+      const aiMessage: Message = {
+        content: resultWithSources || "Je n'ai pas pu trouver de réponse.",
+        isUser: false
+      };
+
+      // Ajout du message IA dans le bon chat
+      setChats(prevChats => prevChats.map(chat => {
+        if (chat.id === chatId) {
+          return {
+            ...chat,
+            messages: [...chat.messages, aiMessage] // ou juste aiMessage si déjà ajouté l'user
+          };
+        }
+        return chat;
+      }));
+    } catch (error) {
+      console.error('Erreur recherche web :', error);
+      const errorMessage: Message = {
+        content: "Erreur lors de la recherche sur le web.",
+        isUser: false
+      };
+
+      setChats(prevChats => prevChats.map(chat => {
+        if (chat.id === chatId) {
+          return {
+            ...chat,
+            messages: [...chat.messages, userMessage, errorMessage]
+          };
+        }
+        return chat;
+      }));
+    }
   };
 
   const getFeatureIcon = (featureId: string) => {
@@ -109,10 +162,9 @@ function AppContent() {
       {isLoading && <LoadingPage />}
       <div className={`flex h-screen ${classes.background} ${classes.text}`}>
         {/* Sidebar */}
-        <div 
-          className={`${
-            isSidebarOpen ? 'w-80' : 'w-0'
-          } transition-all duration-300 overflow-hidden flex flex-col border-r ${classes.border}`}
+        <div
+          className={`${isSidebarOpen ? 'w-80' : 'w-0'
+            } transition-all duration-300 overflow-hidden flex flex-col border-r ${classes.border}`}
         >
           {/* Logo */}
           <div className={`p-6 flex justify-center items-center border-b ${classes.border}`}>
@@ -129,11 +181,10 @@ function AppContent() {
                 <button
                   key={feature.id}
                   onClick={() => handleFeatureChange(feature.id)} // Use handleFeatureChange
-                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl mb-2 transition-all duration-300 ${
-                    activeFeature === feature.id && !selectedChat // Ensure only one is active
+                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl mb-2 transition-all duration-300 ${activeFeature === feature.id && !selectedChat // Ensure only one is active
                       ? `${classes.buttonBackground} ${classes.text} ring-1 ring-blue-500/30`
                       : `${classes.text} ${classes.hoverBackground}`
-                  }`}
+                    }`}
                 >
                   {React.createElement(feature.icon, {
                     size: 20,
@@ -160,11 +211,10 @@ function AppContent() {
                       <button
                         key={chat.id}
                         onClick={() => handleChatSelection(chat.id)} // Use handleChatSelection
-                        className={`w-full text-left px-4 py-3 rounded-xl mb-1 transition-all duration-200 flex items-center gap-3 ${
-                          selectedChat === chat.id
+                        className={`w-full text-left px-4 py-3 rounded-xl mb-1 transition-all duration-200 flex items-center gap-3 ${selectedChat === chat.id
                             ? `${classes.buttonBackground} ${classes.text} ring-1 ring-blue-500/30`
                             : `${classes.text} ${classes.hoverBackground}`
-                        }`}
+                          }`}
                       >
                         <Bot size={16} className="text-gray-500" />
                         <span className="truncate">{chat.title}</span>
@@ -237,11 +287,10 @@ function AppContent() {
                   className={`flex ${message.isUser ? 'justify-end' : 'justify-start'}`}
                 >
                   <div
-                    className={`max-w-[80%] rounded-xl p-4 text-sm ${
-                      message.isUser
+                    className={`max-w-[80%] rounded-xl p-4 text-sm ${message.isUser
                         ? `${classes.buttonBackground} shadow-md`
                         : `${classes.inputBackground} ${classes.border} shadow-md`
-                    }`}
+                      }`}
                   >
                     {message.content}
                   </div>

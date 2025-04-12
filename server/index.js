@@ -13,6 +13,8 @@ import { RecursiveCharacterTextSplitter } from "langchain/text_splitter";
 
 import { BartTokenizer, BartForConditionalGeneration } from '@xenova/transformers';
 
+import * as cheerio from 'cheerio'
+
 const app = express();
 const upload = multer({ dest: 'uploads/' });
 const PORT = 3001;
@@ -279,6 +281,103 @@ app.post('/api/ask', async (req, res) => {
     }
 });
 
+
+
+app.post('/api/search', async (req, res) => {
+    try {
+        const { query } = req.body;
+        const searchUrl = `https://html.duckduckgo.com/html/?q=${encodeURIComponent(query)}`;
+
+        // Faire la requête DuckDuckGo
+        const response = await fetch(searchUrl, {
+            headers: {
+                'User-Agent': 'Mozilla/5.0',
+            },
+        });
+
+        const html = await response.text();
+        const $ = cheerio.load(html);
+
+        // Extraire les résultats
+        const results = [];
+        const sources = [];
+        $('.result').each((i, el) => {
+            const title = $(el).find('a.result__a').text();
+            const snippet = $(el).find('.result__snippet').text();
+            const url = $(el).find('a.result__a').attr('href');  // URL du résultat
+
+            if (title && snippet && url) {
+                results.push(`- ${title.trim()}: ${snippet.trim()}`);
+                sources.push(url.trim());  // Ajouter l'URL dans la liste des sources
+            }
+        });
+
+        // Vérifier si des résultats sont trouvés
+        if (results.length === 0) {
+            return res.status(404).json({ error: 'Aucun résultat trouvé.' });
+        }
+
+        // Limiter le nombre de résultats extraits
+        const context = results.slice(0, 5).join('\n');
+        const sourcesContext = sources.slice(0, 5).map(url => `Source: ${url}`).join('\n');
+
+        console.log(sourcesContext);  // Afficher les sources dans la console
+
+        // Préparer le prompt pour Ollama
+        const ollamaPrompt = `Voici des extraits de résultats de recherche sur : "${query}"\n\n${context}\n\nFais un résumé clair et concis des informations trouvées, sans inventer.`;
+
+        // Appel à Ollama local
+        const ollamaResponse = await fetch('http://localhost:11434/api/generate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                model: 'mistral',
+                prompt: ollamaPrompt,
+            }),
+        });
+
+        // Lire le flux JSONL de la réponse
+        const reader = ollamaResponse.body.getReader();
+        const decoder = new TextDecoder('utf-8');
+        let result = '';
+
+        while (true) {
+            const { value, done } = await reader.read();
+            if (done) break;
+            result += decoder.decode(value, { stream: true });
+        }
+
+        // Séparer les lignes et parser chaque ligne JSON
+        const lines = result
+            .split('\n')
+            .filter(line => line.trim() !== '')
+            .map(line => {
+                try {
+                    return JSON.parse(line);
+                } catch (e) {
+                    console.error("Ligne invalide :", line);
+                    return null;
+                }
+            })
+            .filter(obj => obj && obj.response);
+
+        // Extraire le texte du modèle
+        const finalResponse = lines.map(obj => obj.response).join('');
+
+        // Retourner la réponse avec résumé et sources
+        return res.json({
+            result: finalResponse,
+            sources: sources,  // Ajouter les sources à la réponse
+        });
+
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Erreur lors de la recherche ou du résumé.' });
+    }
+});
+
+  
+  
 
 
 
