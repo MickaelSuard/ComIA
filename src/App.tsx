@@ -281,7 +281,9 @@ function AppContent() {
                 setSelectedChat={setSelectedChat} // Ajout de setSelectedChat
               />
             ) : (
+             
               selectedChat && chats.find(chat => chat.id === selectedChat)?.messages.map((message, index) => (
+                <div className="flex flex-col max-w-7xl mx-auto">
                 <div
                   key={index}
                   className={`flex ${message.isUser ? 'justify-end' : 'justify-start'}`}
@@ -294,8 +296,11 @@ function AppContent() {
                     dangerouslySetInnerHTML={{ __html: message.content }} // Render HTML content
                   ></div>
                 </div>
+                </div>
               ))
+              
             )}
+            
           </div>
 
           {/* Input for other features */}
