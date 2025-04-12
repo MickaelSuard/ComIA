@@ -112,12 +112,12 @@ function AppContent() {
       const data = await response.json();
 
       // Traiter les sources sous forme de liste
-      const sourcesList = data.sources.map((source: string, index: number) => {
-        return `${index + 1}. [${source}](${source})`;  // Format de liste avec lien cliquable
-      }).join('\n');  // Joindre les sources avec des retours à la ligne
+      const sourcesList = data.sources.map((source: { domain: string; url: string }, index: number) => {
+        return `<li>${index + 1}. <a href="${source.url}" target="_blank">${source.domain}</a></li>`; // Format de liste HTML avec lien cliquable
+      }).join(''); // Joindre les éléments sans séparateur
 
-      // Ajouter les sources à la fin du résumé
-      const resultWithSources = `${data.result}\n\nSources:\n${sourcesList}`;
+      // Ajouter les sources à la fin du résumé sous forme de liste HTML
+      const resultWithSources = `${data.result}<br><br><strong>Sources:</strong><ul>${sourcesList}</ul>`;
 
       const aiMessage: Message = {
         content: resultWithSources || "Je n'ai pas pu trouver de réponse.",
@@ -291,9 +291,8 @@ function AppContent() {
                         ? `${classes.buttonBackground} shadow-md`
                         : `${classes.inputBackground} ${classes.border} shadow-md`
                       }`}
-                  >
-                    {message.content}
-                  </div>
+                    dangerouslySetInnerHTML={{ __html: message.content }} // Render HTML content
+                  ></div>
                 </div>
               ))
             )}

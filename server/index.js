@@ -304,24 +304,49 @@ app.post('/api/search', async (req, res) => {
         $('.result').each((i, el) => {
             const title = $(el).find('a.result__a').text();
             const snippet = $(el).find('.result__snippet').text();
-            const url = $(el).find('a.result__a').attr('href');  // URL du résultat
+            let url = $(el).find('a.result__a').attr('href'); // URL du résultat
 
             if (title && snippet && url) {
+                // Ajouter le préfixe "https:" si l'URL commence par "//"
+                if (url.startsWith('//')) {
+                    url = `https:${url}`;
+                }
+
                 results.push(`- ${title.trim()}: ${snippet.trim()}`);
-                sources.push(url.trim());  // Ajouter l'URL dans la liste des sources
+                try {
+                    const decodedUrl = decodeURIComponent(url);
+                    const domain = new URL(decodedUrl).hostname.replace('www.', '');
+                    sources.push(`<li>${domain}: <a href="${decodedUrl}" target="_blank">${decodedUrl}</a></li>`); // Ajouter le nom du site et le lien cliquable
+                } catch (error) {
+                    console.error("URL invalide :", url);
+                }
             }
         });
 
-        // Vérifier si des résultats sont trouvés
         if (results.length === 0) {
             return res.status(404).json({ error: 'Aucun résultat trouvé.' });
         }
 
-        // Limiter le nombre de résultats extraits
         const context = results.slice(0, 5).join('\n');
-        const sourcesContext = sources.slice(0, 5).map(url => `Source: ${url}`).join('\n');
-
-        console.log(sourcesContext);  // Afficher les sources dans la console
+        // Convert sources to an array of objects with domain and URL
+        const sourcesArray = sources.slice(0, 5).map(source => {
+            const match = source.match(/<li>(.*?): <a href="(.*?)"/);
+            if (match) {
+                const url = match[2];
+                try {
+                    // Extract the actual URL from the DuckDuckGo redirect
+                    const actualUrl = new URL(url).searchParams.get('uddg');
+                    if (actualUrl) {
+                        const domain = new URL(actualUrl).hostname.replace('www.', ''); // Extract the correct domain
+                        return { domain, url: actualUrl };
+                    }
+                } catch (error) {
+                    console.error("Erreur lors de l'extraction du domaine :", url);
+                    return null;
+                }
+            }
+            return null;
+        }).filter(Boolean);
 
         // Préparer le prompt pour Ollama
         const ollamaPrompt = `Voici des extraits de résultats de recherche sur : "${query}"\n\n${context}\n\nFais un résumé clair et concis des informations trouvées, sans inventer.`;
@@ -367,7 +392,7 @@ app.post('/api/search', async (req, res) => {
         // Retourner la réponse avec résumé et sources
         return res.json({
             result: finalResponse,
-            sources: sources,  // Ajouter les sources à la réponse
+            sources: sourcesArray // Return sources as an array of objects
         });
 
     } catch (err) {
