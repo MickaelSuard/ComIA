@@ -7,7 +7,7 @@ import XLSX from 'xlsx';
 import { exec } from 'node:child_process';
 import fs from 'node:fs/promises';
 import { reformulateText } from '../src/services/reformulateText.js';
-
+import { marked } from 'marked';
 import { PDFLoader } from "@langchain/community/document_loaders/fs/pdf";
 import { RecursiveCharacterTextSplitter } from "langchain/text_splitter";
 
@@ -18,6 +18,7 @@ import * as cheerio from 'cheerio'
 const app = express();
 const upload = multer({ dest: 'uploads/' });
 const PORT = 3001;
+
 
 app.use(express.json());
 app.use(cors({
@@ -349,7 +350,7 @@ app.post('/api/search', async (req, res) => {
         }).filter(Boolean);
 
         // Préparer le prompt pour Ollama
-        const ollamaPrompt = `Voici des extraits de résultats de recherche sur : "${query}"\n\n${context}\n\nFais un résumé clair et concis des informations trouvées, sans inventer.`;
+        const ollamaPrompt = `Voici des extraits de résultats de recherche sur : "${query}"\n\n${context}\n\nFais un résumé clair et concis en francais des informations trouvées, sans inventer.`;
 
         // Appel à Ollama local
         const ollamaResponse = await fetch('http://localhost:11434/api/generate', {
@@ -400,6 +401,53 @@ app.post('/api/search', async (req, res) => {
         res.status(500).json({ error: 'Erreur lors de la recherche ou du résumé.' });
     }
 });
+
+
+app.post('/api/instruct', async (req, res) => {
+    const { prompt } = req.body;
+
+    if (!prompt) {
+        return res.status(400).json({ error: 'Prompt manquant.' });
+    }
+
+    try {
+        const ollamaResponse = await fetch('http://localhost:11434/api/generate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                model: 'mistral',
+                prompt,
+                stream: false,
+            })
+        });
+
+        const data = await ollamaResponse.json();
+
+        if (data.error) {
+            return res.status(500).json({ error: data.error });
+        }
+
+        const response = data.response;
+
+        // Vérifier si le prompt contient des instructions pour générer un tableau ou du markdown
+        if (prompt.toLowerCase().includes('tableau') || prompt.toLowerCase().includes('markdown') || prompt.toLowerCase().includes('formatage') )  { 
+            const htmlResponse = generateHtmlFromMarkdown(response);
+            return res.json({ result: htmlResponse });
+        }
+
+        // Sinon, retourner la réponse en texte brut
+        return res.json({ result: response });
+
+    } catch (error) {
+        console.error('Erreur /api/instruct:', error);
+        return res.status(500).json({ error: "Erreur interne du serveur." });
+    }
+});
+
+// Fonction pour transformer le Markdown en HTML
+const generateHtmlFromMarkdown = (markdownText) => {
+    return marked(markdownText); // Cela convertira le markdown en HTML
+};
 
   
   

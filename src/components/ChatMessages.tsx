@@ -21,7 +21,7 @@ const ChatMessages: React.FC<ChatMessagesProps> = ({ chats, selectedChat, classe
 
     return (
         <>
-            {chat.messages.map((message, index) => (
+            {chat.messages.map((message,index) => (
                 <div key={index} className="flex flex-col max-w-7xl mx-auto">
                     <div className={`flex ${message.isUser ? 'justify-end' : 'justify-start'}`}>
                         <div
@@ -30,7 +30,7 @@ const ChatMessages: React.FC<ChatMessagesProps> = ({ chats, selectedChat, classe
                                     : `${classes.inputBackground} ${classes.border} shadow-md`
                                 }`}
                             dangerouslySetInnerHTML={{ __html: message.content }}
-                        ></div>
+                        />
                     </div>
                 </div>
             ))}

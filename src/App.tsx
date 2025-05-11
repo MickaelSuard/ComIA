@@ -45,6 +45,7 @@ function AppContent() {
   const [input, setInput] = useState('');
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [activeFeature, setActiveFeature] = useState('chat');
+  const [activeSearch, setActiveSearch] = useState('');
   const [chats, setChats] = useState<Chat[]>([]);
   const { toggleTheme, classes, isDarkMode } = useTheme(); // Utilisation du theme
   const { isLoading } = useLoading();
@@ -85,79 +86,82 @@ function AppContent() {
       setSelectedChat(newChat.id);
     }
 
+    const chatId = selectedChat || (newChat && newChat.id);
+
     const userMessage: Message = {
       content: input,
       isUser: true
     };
 
-    // Ajout du message utilisateur
-    const chatId = selectedChat || (newChat && newChat.id);
-    setChats(prevChats => prevChats.map(chat => {
-      if (chat.id === chatId) {
-        return {
-          ...chat,
-          messages: [...chat.messages, userMessage]
-        };
-      }
-      return chat;
-    }));
+    setChats(prevChats => prevChats.map(chat =>
+      chat.id === chatId
+        ? { ...chat, messages: [...chat.messages, userMessage] }
+        : chat
+    ));
 
     setInput('');
     setIsLoad(true);
 
     try {
-      // Appel à l'API Express `/search`
-      const response = await fetch('http://localhost:3001/api/search', {
+      let apiUrl = '';
+      let bodyPayload: any = {};
+      let resultWithSources: string;
+
+      if (activeSearch === 'search') {
+        apiUrl = 'http://localhost:3001/api/search';
+        bodyPayload = { query: input };
+      } else {
+        apiUrl = 'http://localhost:3001/api/instruct';
+        bodyPayload = { prompt: input };
+      }
+
+      const response = await fetch(apiUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ query: input })
+        body: JSON.stringify(bodyPayload)
       });
 
       const data = await response.json();
 
-      // Traiter les sources sous forme de liste
-      const sourcesList = data.sources.map((source: { domain: string; url: string }, index: number) => {
-        return `<li>${index + 1}. <a href="${source.url}" target="_blank">${source.domain}</a></li>`; // Format de liste HTML avec lien cliquable
-      }).join(''); // Joindre les éléments sans séparateur
+      if (activeSearch === 'search') {
+        const sourcesList = data.sources.map((source: { domain: string; url: string }, index: number) =>
+          `<li>${index + 1}. <a href="${source.url}" target="_blank">${source.domain}</a></li>`
+        ).join('');
 
-      // Ajouter les sources à la fin du résumé sous forme de liste HTML
-      const resultWithSources = `${data.result}<br><br><strong>Sources:</strong><ul>${sourcesList}</ul>`;
+        resultWithSources = `${data.result}<br><br><strong>Sources:</strong><ul>${sourcesList}</ul>`;
+      } else {
+        resultWithSources = data.result || "Je n'ai pas pu traiter votre demande.";
+      }
 
       const aiMessage: Message = {
-        content: resultWithSources || "Je n'ai pas pu trouver de réponse.",
+        content: resultWithSources,
         isUser: false
       };
 
-      // Ajout du message IA dans le bon chat
-      setChats(prevChats => prevChats.map(chat => {
-        if (chat.id === chatId) {
-          return {
-            ...chat,
-            messages: [...chat.messages, aiMessage] // ou juste aiMessage si déjà ajouté l'user
-          };
-        }
-        return chat;
-      }));
+      setChats(prevChats => prevChats.map(chat =>
+        chat.id === chatId
+          ? { ...chat, messages: [...chat.messages, aiMessage] }
+          : chat
+      ));
+
     } catch (error) {
-      console.error('Erreur recherche web :', error);
+      console.error('Erreur lors de l’envoi :', error);
+
       const errorMessage: Message = {
-        content: "Erreur lors de la recherche sur le web.",
+        content: "Une erreur est survenue lors du traitement.",
         isUser: false
       };
 
-      setChats(prevChats => prevChats.map(chat => {
-        if (chat.id === chatId) {
-          return {
-            ...chat,
-            messages: [...chat.messages, userMessage, errorMessage]
-          };
-        }
-        return chat;
-      }));
-    }finally {
-      setIsLoad(false); 
+      setChats(prevChats => prevChats.map(chat =>
+        chat.id === chatId
+          ? { ...chat, messages: [...chat.messages, errorMessage] }
+          : chat
+      ));
+    } finally {
+      setIsLoad(false);
     }
   };
+
 
   const getFeatureIcon = (featureId: string) => {
     return features.find(f => f.id === featureId)?.icon || MessageSquare;
@@ -188,8 +192,8 @@ function AppContent() {
                   key={feature.id}
                   onClick={() => handleFeatureChange(feature.id)} // Use handleFeatureChange
                   className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl mb-2 transition-all duration-300 ${activeFeature === feature.id && !selectedChat // Ensure only one is active
-                      ? `${classes.buttonBackground} ${classes.text} ring-1 ring-blue-500/30`
-                      : `${classes.text} ${classes.hoverBackground}`
+                    ? `${classes.buttonBackground} ${classes.text} ring-1 ring-blue-500/30`
+                    : `${classes.text} ${classes.hoverBackground}`
                     }`}
                 >
                   {React.createElement(feature.icon, {
@@ -218,8 +222,8 @@ function AppContent() {
                         key={chat.id}
                         onClick={() => handleChatSelection(chat.id)} // Use handleChatSelection
                         className={`w-full text-left px-4 py-3 rounded-xl mb-1 transition-all duration-200 flex items-center gap-3 ${selectedChat === chat.id
-                            ? `${classes.buttonBackground} ${classes.text} ring-1 ring-blue-500/30`
-                            : `${classes.text} ${classes.hoverBackground}`
+                          ? `${classes.buttonBackground} ${classes.text} ring-1 ring-blue-500/30`
+                          : `${classes.text} ${classes.hoverBackground}`
                           }`}
                       >
                         <Bot size={16} className="text-gray-500" />
@@ -296,16 +300,17 @@ function AppContent() {
             )}
           </div>
 
-          {/* Input for other features */}
           {activeFeature !== 'transcribe' && activeFeature !== 'document' && activeFeature !== 'correct' && (
             <div className="p-4 ">
               <Search
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onSubmit={handleSubmit}
-                placeholder="Écrivez votre message ici..."
-                isLoading={false}
+                placeholder="Poser une question..."
+                isLoading={isLoading}
                 classes={classes}
+                activeFeature={activeSearch}
+                onModeToggle={(mode) => setActiveSearch(mode)}
               />
             </div>
           )}
