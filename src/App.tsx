@@ -8,6 +8,7 @@ import Transcription from './components/Transcription';
 import Correction from './components/Correction';
 import Search from './ui/Search';
 import DocumentSummary from './components/Document';
+import ChatMessages from './components/ChatMessages';
 
 const LoadingContext = createContext<{ isLoading: boolean; setLoading: (loading: boolean) => void }>({
   isLoading: false,
@@ -66,6 +67,8 @@ function AppContent() {
     setActiveFeature(chats.find(chat => chat.id === chatId)?.feature || ''); // Ensure only one is active
   };
 
+  const [isLoad, setIsLoad] = useState<boolean>(false);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!input.trim()) return;
@@ -100,6 +103,7 @@ function AppContent() {
     }));
 
     setInput('');
+    setIsLoad(true);
 
     try {
       // Appel à l'API Express `/search`
@@ -150,6 +154,8 @@ function AppContent() {
         }
         return chat;
       }));
+    }finally {
+      setIsLoad(false); 
     }
   };
 
@@ -276,31 +282,18 @@ function AppContent() {
             ) : activeFeature === 'correct' ? (
               <Correction
                 chats={chats}
-                setChats={setChats} // Ajout de setChats
+                setChats={setChats}
                 selectedChat={selectedChat}
-                setSelectedChat={setSelectedChat} // Ajout de setSelectedChat
+                setSelectedChat={setSelectedChat}
               />
             ) : (
-             
-              selectedChat && chats.find(chat => chat.id === selectedChat)?.messages.map((message, index) => (
-                <div className="flex flex-col max-w-7xl mx-auto">
-                <div
-                  key={index}
-                  className={`flex ${message.isUser ? 'justify-end' : 'justify-start'}`}
-                >
-                  <div
-                    className={`max-w-[80%] rounded-xl p-4 text-sm ${message.isUser
-                        ? `${classes.buttonBackground} shadow-md`
-                        : `${classes.inputBackground} ${classes.border} shadow-md`
-                      }`}
-                    dangerouslySetInnerHTML={{ __html: message.content }} // Render HTML content
-                  ></div>
-                </div>
-                </div>
-              ))
-              
+              <ChatMessages
+                chats={chats}
+                selectedChat={selectedChat}
+                classes={classes}
+                isLoading={isLoad}
+              />
             )}
-            
           </div>
 
           {/* Input for other features */}
