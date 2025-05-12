@@ -36,7 +36,7 @@ function Search({
   if (activeFeature === 'search') {
     placeholder = 'Rechercher sur le Web...';
   }
-  const { classes } = useTheme();
+  const { classes,isDarkMode } = useTheme();
 
   return (
     <form onSubmit={onSubmit} className="relative flex w-full justify-center items-center gap-4">
@@ -57,8 +57,8 @@ function Search({
             onClick={() => onModeToggle?.(activeFeature === 'search' ? '' : 'search')}
             title="Rechercher sur le Web"
             className={`left-3 top-1/2 -translate-y-1/2 text-lg transition rounded-full p-1
-        ${activeFeature === 'search' ? 'text-black bg-white ' : `text-gray-400 ` }
-        hover:bg-neutral-700`}
+        ${activeFeature === 'search' ?  `${isDarkMode ? `text-black bg-white` : `text-white bg-gray-700` }  ` : `text-gray-400 ` }
+        hover:bg-neutral-700 hover:text-white`}
           >
             <Globe />
           </button>
