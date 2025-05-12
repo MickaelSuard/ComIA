@@ -13,7 +13,6 @@ interface SearchProps {
   onModeToggle?: (mode: string) => void;
 }
 
-
 function Search({
   value,
   onChange,
@@ -25,20 +24,30 @@ function Search({
   onModeToggle,
 }: SearchProps) {
 
+  const { classes, isDarkMode } = useTheme();
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const textarea = e.target;
+    textarea.style.height = 'auto'; // Reset height to calculate new height
+    textarea.style.height = `${Math.min(textarea.scrollHeight, 200)}px`; // Set height with a max limit
+    onChange(e);
+  };
+
   if (activeFeature === 'search') {
     placeholder = 'Rechercher sur le Web...';
   }
-  const { classes, isDarkMode } = useTheme();
+  
 
   return (
-    <div  className="relative flex w-full justify-center items-center gap-4  max-w-7xl mx-auto">
+    <div className="relative flex w-full justify-center items-center gap-4  max-w-7xl mx-auto">
       <div className={`relative w-full rounded-xl border transition-all duration-200 ${classes.background}`}>
         {/* Champ de saisie avec padding à gauche */}
         <textarea
           value={value}
-          onChange={onChange}
+          onChange={handleInputChange}
           placeholder={placeholder}
           className={`flex-1 w-full p-4 max-w-7xl min-h-[10px] border-transparent bg-transparent outline-none resize-none`}
+          style={{ maxHeight: '200px', overflowY: 'auto' }} // Add max height and scroll behavior
         />
 
         {/* Icône de recherche */}
@@ -67,9 +76,9 @@ function Search({
         type="submit"
         disabled={isLoading}
         onClick={onSubmit}
-        className={`p-4 rounded-xl transition-all duration-200 shadow-lg transform ${classes.buttonBackground} ${classes.text}`}
+        className={` px-6 py-3 rounded-2xl font-semibold transition-all duration-300 shadow-md transform hover:scale-105 hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-offset-2  focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed ${classes.buttonBackground} ${classes.text}`}
       >
-        Envoyer
+        {isLoading ? 'Chargement...' : 'Envoyer'}
       </button>
     </div>
 
