@@ -15,6 +15,7 @@ interface SearchProps {
     text: string;
   };
   activeFeature?: string;
+  mode ?: [string];
   onModeToggle?: (mode: string) => void;
 }
 
@@ -25,7 +26,8 @@ function Search({
   placeholder = 'Rechercher...',
   isLoading = false,
   classes,
-  activeFeature,
+  activeFeature = '',
+  mode,
   onModeToggle,
 }: SearchProps) {
 
@@ -45,6 +47,8 @@ function Search({
         className={`flex-1 w-full p-4 max-w-7xl min-h-[10px] rounded-xl border-transparent bg-transparent outline-none resize-none`}
   />
 
+        {/* Icône de recherche */}
+        {mode?.includes('search') && ( 
         <div className='pl-4 mt-2'>
           <button
             type="button"
@@ -56,8 +60,8 @@ function Search({
           >
             <Globe />
           </button>
-        </div>
-      </div>
+        </div> )}
+      </div> 
 
 
       {/* Bouton envoyer */}

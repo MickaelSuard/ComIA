@@ -6,7 +6,6 @@ import LogoColor from '../logo-color.png';
 import LogoWhite from '../logo-white.svg';
 import Transcription from './components/Transcription';
 import Correction from './components/Correction';
-import Search from './ui/Search';
 import DocumentSummary from './components/Document';
 import ChatMessages from './components/ChatMessages';
 
@@ -35,17 +34,15 @@ type Chat = {
   messages: Message[];
 };
 
-type Message = {
+export type Message = {
   content: string;
   isUser: boolean;
 };
 
 function AppContent() {
   const [selectedChat, setSelectedChat] = useState<string | null>(null);
-  const [input, setInput] = useState('');
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [activeFeature, setActiveFeature] = useState('chat');
-  const [activeSearch, setActiveSearch] = useState('');
   const [chats, setChats] = useState<Chat[]>([]);
   const { toggleTheme, classes, isDarkMode } = useTheme(); // Utilisation du theme
   const { isLoading } = useLoading();
@@ -68,99 +65,99 @@ function AppContent() {
     setActiveFeature(chats.find(chat => chat.id === chatId)?.feature || ''); // Ensure only one is active
   };
 
-  const [isLoad, setIsLoad] = useState<boolean>(false);
+  
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!input.trim()) return;
+  // const handleSubmit = async (e: React.FormEvent) => {
+  //   e.preventDefault();
+  //   if (!input.trim()) return;
 
-    const newChat = !selectedChat && {
-      id: Date.now().toString(),
-      title: `Message ${chats.length + 1}`,
-      feature: activeFeature,
-      messages: []
-    };
+  //   const newChat = !selectedChat && {
+  //     id: Date.now().toString(),
+  //     title: `Message ${chats.length + 1}`,
+  //     feature: activeFeature,
+  //     messages: []
+  //   };
 
-    if (newChat) {
-      setChats(prev => [newChat, ...prev]);
-      setSelectedChat(newChat.id);
-    }
+  //   if (newChat) {
+  //     setChats(prev => [newChat, ...prev]);
+  //     setSelectedChat(newChat.id);
+  //   }
 
-    const chatId = selectedChat || (newChat && newChat.id);
+  //   const chatId = selectedChat || (newChat && newChat.id);
 
-    const userMessage: Message = {
-      content: input,
-      isUser: true
-    };
+  //   const userMessage: Message = {
+  //     content: input,
+  //     isUser: true
+  //   };
 
-    setChats(prevChats => prevChats.map(chat =>
-      chat.id === chatId
-        ? { ...chat, messages: [...chat.messages, userMessage] }
-        : chat
-    ));
+  //   setChats(prevChats => prevChats.map(chat =>
+  //     chat.id === chatId
+  //       ? { ...chat, messages: [...chat.messages, userMessage] }
+  //       : chat
+  //   ));
 
-    setInput('');
-    setIsLoad(true);
+  //   setInput('');
+  //   setIsLoad(true);
 
-    try {
-      let apiUrl = '';
-      let bodyPayload: any = {};
-      let resultWithSources: string;
+  //   try {
+  //     let apiUrl = '';
+  //     let bodyPayload: any = {};
+  //     let resultWithSources: string;
 
-      if (activeSearch === 'search') {
-        apiUrl = 'http://localhost:3001/api/search';
-        bodyPayload = { query: input };
-      } else {
-        apiUrl = 'http://localhost:3001/api/instruct';
-        bodyPayload = { prompt: input };
-      }
+  //     if (activeSearch === 'search') {
+  //       apiUrl = 'http://localhost:3001/api/search';
+  //       bodyPayload = { query: input };
+  //     } else {
+  //       apiUrl = 'http://localhost:3001/api/instruct';
+  //       bodyPayload = { prompt: input };
+  //     }
 
-      const response = await fetch(apiUrl, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(bodyPayload)
-      });
+  //     const response = await fetch(apiUrl, {
+  //       method: 'POST',
+  //       headers: { 'Content-Type': 'application/json' },
+  //       body: JSON.stringify(bodyPayload)
+  //     });
 
-      const data = await response.json();
+  //     const data = await response.json();
 
-      if (activeSearch === 'search') {
-        const sourcesList = data.sources.map((source: { domain: string; url: string }, index: number) =>
-          `<li>${index + 1}. <a href="${source.url}" target="_blank">${source.domain}</a></li>`
-        ).join('');
+  //     if (activeSearch === 'search') {
+  //       const sourcesList = data.sources.map((source: { domain: string; url: string }, index: number) =>
+  //         `<li>${index + 1}. <a href="${source.url}" target="_blank">${source.domain}</a></li>`
+  //       ).join('');
 
-        resultWithSources = `${data.result}<br><br><strong>Sources:</strong><ul>${sourcesList}</ul>`;
-      } else {
-        resultWithSources = data.result || "Je n'ai pas pu traiter votre demande.";
-      }
+  //       resultWithSources = `${data.result}<br><br><strong>Sources:</strong><ul>${sourcesList}</ul>`;
+  //     } else {
+  //       resultWithSources = data.result || "Je n'ai pas pu traiter votre demande.";
+  //     }
 
-      const aiMessage: Message = {
-        content: resultWithSources,
-        isUser: false
-      };
+  //     const aiMessage: Message = {
+  //       content: resultWithSources,
+  //       isUser: false
+  //     };
 
-      setChats(prevChats => prevChats.map(chat =>
-        chat.id === chatId
-          ? { ...chat, messages: [...chat.messages, aiMessage] }
-          : chat
-      ));
+  //     setChats(prevChats => prevChats.map(chat =>
+  //       chat.id === chatId
+  //         ? { ...chat, messages: [...chat.messages, aiMessage] }
+  //         : chat
+  //     ));
 
-    } catch (error) {
-      console.error('Erreur lors de l’envoi :', error);
+  //   } catch (error) {
+  //     console.error('Erreur lors de l’envoi :', error);
 
-      const errorMessage: Message = {
-        content: "Une erreur est survenue lors du traitement.",
-        isUser: false
-      };
+  //     const errorMessage: Message = {
+  //       content: "Une erreur est survenue lors du traitement.",
+  //       isUser: false
+  //     };
 
-      setChats(prevChats => prevChats.map(chat =>
-        chat.id === chatId
-          ? { ...chat, messages: [...chat.messages, errorMessage] }
-          : chat
-      ));
-    } finally {
-      setIsLoad(false);
-    }
-  };
+  //     setChats(prevChats => prevChats.map(chat =>
+  //       chat.id === chatId
+  //         ? { ...chat, messages: [...chat.messages, errorMessage] }
+  //         : chat
+  //     ));
+  //   } finally {
+  //     setIsLoad(false);
+  //   }
+  // };
 
 
   const getFeatureIcon = (featureId: string) => {
@@ -292,28 +289,15 @@ function AppContent() {
               />
             ) : (
               <ChatMessages
+                setChats={setChats}
+                setSelectedChat={setSelectedChat}
                 chats={chats}
                 selectedChat={selectedChat}
                 classes={classes}
-                isLoading={isLoad}
+                activeFeature={activeFeature}
               />
             )}
           </div>
-
-          {activeFeature !== 'transcribe' && activeFeature !== 'document' && activeFeature !== 'correct' && (
-            <div className="p-4 ">
-              <Search
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                onSubmit={handleSubmit}
-                placeholder="Poser une question..."
-                isLoading={isLoading}
-                classes={classes}
-                activeFeature={activeSearch}
-                onModeToggle={(mode) => setActiveSearch(mode)}
-              />
-            </div>
-          )}
         </div>
       </div>
     </>
