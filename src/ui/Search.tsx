@@ -31,7 +31,7 @@ function Search({
   const { classes, isDarkMode } = useTheme();
 
   return (
-    <div  className="relative flex w-full justify-center items-center gap-4 px-4 py-6 max-w-7xl mx-auto">
+    <div  className="relative flex w-full justify-center items-center gap-4  max-w-7xl mx-auto">
       <div className={`relative w-full rounded-xl border transition-all duration-200 ${classes.background}`}>
         {/* Champ de saisie avec padding à gauche */}
         <textarea
@@ -58,7 +58,7 @@ function Search({
       </div>
 
       {/* Message d'avertissement */}
-      <p className="absolute -bottom-2 left-5 text-sm text-gray-500 text-center">
+      <p className="absolute -bottom-6 left-3 text-sm text-gray-500 text-center">
         ComIA peut commettre des erreurs. Il est recommandé de vérifier les informations importantes.
       </p>
 

@@ -190,7 +190,7 @@ const ChatMessages: React.FC<ChatMessagesProps> = ({
                         </div>
 
                         {/* Barre de recherche sticky */}
-                        <div className="sticky bottom-0 z-10 p-4">
+                        <div className="sticky bottom-0 p-4">
                             <Search
                                 value={input}
                                 onChange={(e) => setInput(e.target.value)}

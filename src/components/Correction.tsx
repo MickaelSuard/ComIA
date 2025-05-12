@@ -25,8 +25,7 @@ function Correction({ chats, setChats, selectedChat, setSelectedChat }: Correcti
   const [isLoading, setIsLoading] = useState(false);
   const [correctionMode, setCorrectionMode] = useState<'formelle' | 'informelle'>('formelle'); // New state for correction mode
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async () => {
     if (!input.trim()) return;
 
     let activeChat = chats.find(chat => chat.id === selectedChat);
@@ -116,7 +115,7 @@ function Correction({ chats, setChats, selectedChat, setSelectedChat }: Correcti
             transition={{ duration: 0.3, ease: "easeInOut" }}
             className="flex flex-col h-full"
           >
-            <div className=" p-6 overflow-y-auto space-y-4 "> 
+            <div className=" flex-1 p-6 overflow-y-auto space-y-4 "> 
               {activeChat.messages.map((message, index) => (
                 <div
                   key={index}
@@ -156,7 +155,7 @@ function Correction({ chats, setChats, selectedChat, setSelectedChat }: Correcti
             </div>
 
             {/* Barre de recherche */}
-            <div className="sticky bottom-0 flex  flex-col gap-2">
+            <div className="sticky bottom-0 flex flex-col gap-2 p-4">
               {/* Dropdown for correction mode */}
               <div className="self-start">
                 <label htmlFor="correctionMode" className={`block text-sm font-medium ${classes.text}`}>
@@ -178,7 +177,6 @@ function Correction({ chats, setChats, selectedChat, setSelectedChat }: Correcti
                 onSubmit={handleSubmit}
                 placeholder="Écrivez votre message ici..."
                 isLoading={isLoading}
-                classes={classes}
               />
             </div>
           </motion.div>
@@ -216,7 +214,6 @@ function Correction({ chats, setChats, selectedChat, setSelectedChat }: Correcti
                 onSubmit={handleSubmit}
                 placeholder="Écrivez votre message ici..."
                 isLoading={isLoading}
-                classes={classes}
               />
             </div>
 
