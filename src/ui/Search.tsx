@@ -5,18 +5,11 @@ import { useTheme } from '../ThemeContext';
 interface SearchProps {
   value: string;
   onChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
-  onSubmit: (e: React.FormEvent<HTMLFormElement>) => void;
+  onSubmit: () => void;
   placeholder?: string;
   isLoading?: boolean;
-  classes: {
-    inputBackground: string;
-    inputBorder: string;
-    inputPlaceholder: string;
-    buttonBackground: string;
-    text: string;
-  };
   activeFeature?: string;
-  mode ?: [string];
+  mode?: [string];
   onModeToggle?: (mode: string) => void;
 }
 
@@ -27,7 +20,6 @@ function Search({
   onSubmit,
   placeholder = 'Rechercher...',
   isLoading = false,
-  // classes,
   activeFeature = '',
   mode,
   onModeToggle,
@@ -36,45 +28,50 @@ function Search({
   if (activeFeature === 'search') {
     placeholder = 'Rechercher sur le Web...';
   }
-  const { classes,isDarkMode } = useTheme();
+  const { classes, isDarkMode } = useTheme();
 
   return (
-    <form onSubmit={onSubmit} className="relative flex w-full justify-center items-center gap-4">
-      <div className={`relative flex-1 max-w-7xl rounded-xl border transition-all duration-200 ${classes.background}`}>
+    <div  className="relative flex w-full justify-center items-center gap-4 px-4 py-6 max-w-7xl mx-auto">
+      <div className={`relative w-full rounded-xl border transition-all duration-200 ${classes.background}`}>
         {/* Champ de saisie avec padding à gauche */}
         <textarea
           value={value}
           onChange={onChange}
-        placeholder={placeholder}
-        className={`flex-1 w-full p-4 max-w-7xl min-h-[10px] border-transparent bg-transparent outline-none resize-none`}
-  />
+          placeholder={placeholder}
+          className={`flex-1 w-full p-4 max-w-7xl min-h-[10px] border-transparent bg-transparent outline-none resize-none`}
+        />
 
         {/* Icône de recherche */}
-        {mode?.includes('search') && ( 
-        <div className='pl-4 mt-2'>
-          <button
-            type="button"
-            onClick={() => onModeToggle?.(activeFeature === 'search' ? '' : 'search')}
-            title="Rechercher sur le Web"
-            className={`left-3 top-1/2 -translate-y-1/2 text-lg transition rounded-full p-1
-        ${activeFeature === 'search' ?  `${isDarkMode ? `text-black bg-white` : `text-white bg-gray-700` }  ` : `text-gray-400 ` }
-        hover:bg-neutral-700 hover:text-white`}
-          >
-            <Globe />
-          </button>
-        </div> )}
-      </div> 
+        {mode?.includes('search') && (
+          <div className='pl-4 mt-2'>
+            <button
+              type="button"
+              onClick={() => onModeToggle?.(activeFeature === 'search' ? '' : 'search')}
+              title="Rechercher sur le Web"
+              className={`left-3 top-1/2 -translate-y-1/2 text-lg transition rounded-full p-1 hover:bg-neutral-700 hover:text-white
+        ${activeFeature === 'search' ? `${isDarkMode ? `text-black bg-white` : `text-white bg-gray-700`}  ` : `text-gray-400 `}
+        `}
+            >
+              <Globe />
+            </button>
+          </div>)}
+      </div>
 
+      {/* Message d'avertissement */}
+      <p className="absolute -bottom-2 left-5 text-sm text-gray-500 text-center">
+        ComIA peut commettre des erreurs. Il est recommandé de vérifier les informations importantes.
+      </p>
 
       {/* Bouton envoyer */}
       <button
         type="submit"
         disabled={isLoading}
+        onClick={onSubmit}
         className={`p-4 rounded-xl transition-all duration-200 shadow-lg transform ${classes.buttonBackground} ${classes.text}`}
       >
         Envoyer
       </button>
-    </form>
+    </div>
 
   );
 }

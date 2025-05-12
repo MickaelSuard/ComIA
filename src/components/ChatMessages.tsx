@@ -41,8 +41,7 @@ const ChatMessages: React.FC<ChatMessagesProps> = ({
         });
     };
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
+    const handleSubmit = async () => {
         if (!input.trim()) return;
 
         const newChat = !selectedChat && {
@@ -198,7 +197,6 @@ const ChatMessages: React.FC<ChatMessagesProps> = ({
                                 onSubmit={handleSubmit}
                                 placeholder="Poser une question..."
                                 isLoading={isLoading}
-                                classes={classes}
                                 activeFeature={activeSearch}
                                 mode={['search']}
                                 onModeToggle={(mode: string) => setActiveSearch(mode)}
@@ -224,7 +222,6 @@ const ChatMessages: React.FC<ChatMessagesProps> = ({
                                 onSubmit={handleSubmit}
                                 placeholder="Poser une question..."
                                 isLoading={isLoading}
-                                classes={classes}
                                 activeFeature={activeSearch}
                                 mode={['search']}
                                 onModeToggle={(mode: string) => setActiveSearch(mode)}
