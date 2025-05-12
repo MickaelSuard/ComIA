@@ -29,7 +29,7 @@ const ChatMessages: React.FC<ChatMessagesProps> = ({
     classes,
 }) => {
     const [input, setInput] = useState('');
-    const [activeSearch, setActiveSearch] = useState('search');
+    const [activeSearch, setActiveSearch] = useState('');
     const activeChat = chats.find(chat => chat.id === selectedChat);
     const [isLoading, setIsLoading] = useState<boolean>(false);
 
@@ -134,7 +134,7 @@ const ChatMessages: React.FC<ChatMessagesProps> = ({
     };
 
     return (
-        <div className="flex flex-col h-full max-w-7xl mx-auto">
+        <div className="flex flex-col h-full  max-w-7xl mx-auto">
             <AnimatePresence mode="wait">
                 {activeChat ? (
                     <motion.div
@@ -143,9 +143,10 @@ const ChatMessages: React.FC<ChatMessagesProps> = ({
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: -20 }}
                         transition={{ duration: 0.3, ease: "easeInOut" }}
-                        className="flex flex-col flex-1"
+                        className="flex flex-col h-full "
                     >
-                        <div className="flex-1 p-6 overflow-y-auto space-y-4 mb-16">
+                        {/* Zone scrollable des messages */}
+                        <div className="flex-1 p-6 overflow-y-auto space-y-4">
                             {activeChat.messages.map((message, index) => (
                                 <div
                                     key={index}
@@ -157,7 +158,7 @@ const ChatMessages: React.FC<ChatMessagesProps> = ({
                                             : `${classes.inputBackground} ${classes.border} shadow-md`
                                             } relative`}
                                     >
-                                        {!message.isUser && (
+                                        {!message.isUser ? (
                                             <div className="flex items-center">
                                                 <div className="flex-1" dangerouslySetInnerHTML={{ __html: message.content }} />
                                                 <button
@@ -167,8 +168,7 @@ const ChatMessages: React.FC<ChatMessagesProps> = ({
                                                     <Clipboard size={16} />
                                                 </button>
                                             </div>
-                                        )}
-                                        {message.isUser && (
+                                        ) : (
                                             message.content
                                         )}
                                     </div>
@@ -190,18 +190,20 @@ const ChatMessages: React.FC<ChatMessagesProps> = ({
                             )}
                         </div>
 
-                        {/* Barre de recherche */}
-                        <Search
-                            value={input}
-                            onChange={(e) => setInput(e.target.value)}
-                            onSubmit={handleSubmit}
-                            placeholder="Poser une question..."
-                            isLoading={isLoading}
-                            classes={classes}
-                            activeFeature={activeSearch}
-                            mode={['search']}
-                            onModeToggle={(mode: string) => setActiveSearch(mode)}
-                        />
+                        {/* Barre de recherche sticky */}
+                        <div className="sticky bottom-0 z-10 p-4">
+                            <Search
+                                value={input}
+                                onChange={(e) => setInput(e.target.value)}
+                                onSubmit={handleSubmit}
+                                placeholder="Poser une question..."
+                                isLoading={isLoading}
+                                classes={classes}
+                                activeFeature={activeSearch}
+                                mode={['search']}
+                                onModeToggle={(mode: string) => setActiveSearch(mode)}
+                            />
+                        </div>
                     </motion.div>
                 ) : (
                     <motion.div
@@ -214,7 +216,7 @@ const ChatMessages: React.FC<ChatMessagesProps> = ({
                     >
                         <div className="w-full flex flex-col justify-center items-center">
                             <h2 className={`text-3xl font-semibold ${classes.text} mb-4`}>
-                               Comment puis-je vous aider ?
+                                Comment puis-je vous aider ?
                             </h2>
                             <Search
                                 value={input}
@@ -228,12 +230,11 @@ const ChatMessages: React.FC<ChatMessagesProps> = ({
                                 onModeToggle={(mode: string) => setActiveSearch(mode)}
                             />
                         </div>
-
-
                     </motion.div>
                 )}
             </AnimatePresence>
         </div>
+
     );
 };
 

@@ -1,5 +1,6 @@
 import { Globe } from 'lucide-react';
 import React from 'react';
+import { useTheme } from '../ThemeContext';
 
 interface SearchProps {
   value: string;
@@ -19,13 +20,14 @@ interface SearchProps {
   onModeToggle?: (mode: string) => void;
 }
 
+
 function Search({
   value,
   onChange,
   onSubmit,
   placeholder = 'Rechercher...',
   isLoading = false,
-  classes,
+  // classes,
   activeFeature = '',
   mode,
   onModeToggle,
@@ -34,17 +36,17 @@ function Search({
   if (activeFeature === 'search') {
     placeholder = 'Rechercher sur le Web...';
   }
-  
+  const { classes } = useTheme();
 
   return (
-    <form onSubmit={onSubmit} className="relative flex p-2 w-full justify-center items-center gap-4">
-      <div className={`relative flex-1 max-w-7xl rounded-xl border transition-all duration-200`}>
+    <form onSubmit={onSubmit} className="relative flex w-full justify-center items-center gap-4">
+      <div className={`relative flex-1 max-w-7xl rounded-xl border transition-all duration-200 ${classes.background}`}>
         {/* Champ de saisie avec padding à gauche */}
         <textarea
           value={value}
           onChange={onChange}
         placeholder={placeholder}
-        className={`flex-1 w-full p-4 max-w-7xl min-h-[10px] rounded-xl border-transparent bg-transparent outline-none resize-none`}
+        className={`flex-1 w-full p-4 max-w-7xl min-h-[10px] border-transparent bg-transparent outline-none resize-none`}
   />
 
         {/* Icône de recherche */}

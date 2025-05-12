@@ -114,9 +114,9 @@ function Correction({ chats, setChats, selectedChat, setSelectedChat }: Correcti
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
             transition={{ duration: 0.3, ease: "easeInOut" }}
-            className="flex flex-col flex-1"
+            className="flex flex-col h-full"
           >
-            <div className="flex-1 p-6 overflow-y-auto space-y-4 mb-16"> 
+            <div className=" p-6 overflow-y-auto space-y-4 "> 
               {activeChat.messages.map((message, index) => (
                 <div
                   key={index}
@@ -156,7 +156,7 @@ function Correction({ chats, setChats, selectedChat, setSelectedChat }: Correcti
             </div>
 
             {/* Barre de recherche */}
-            <div className="sticky bottom-0 flex flex-col gap-2">
+            <div className="sticky bottom-0 flex  flex-col gap-2">
               {/* Dropdown for correction mode */}
               <div className="self-start">
                 <label htmlFor="correctionMode" className={`block text-sm font-medium ${classes.text}`}>
