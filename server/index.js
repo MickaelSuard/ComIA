@@ -444,6 +444,57 @@ app.post('/api/instruct', async (req, res) => {
     }
 });
 
+app.post('/api/chat', async (req, res) => {
+  const { prompt } = req.body;
+
+  if (!prompt) return res.status(400).json({ error: 'Prompt manquant.' });
+
+  try {
+    const ollamaResponse = await fetch('http://localhost:11434/api/generate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'mistral',
+        prompt,
+        stream: true,
+      }),
+    });
+
+    // Indique qu’on va envoyer du texte en flux
+    res.setHeader('Content-Type', 'text/plain');
+    res.setHeader('Transfer-Encoding', 'chunked');
+
+    const reader = ollamaResponse.body.getReader();
+    const decoder = new TextDecoder();
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+
+      const chunk = decoder.decode(value, { stream: true });
+
+      // Parse chaque ligne JSON streamée
+      for (const line of chunk.split('\n')) {
+        if (!line.trim()) continue;
+
+        try {
+          const parsed = JSON.parse(line);
+          if (parsed.response) {
+            res.write(parsed.response);
+          }
+        } catch (err) {
+          console.error('Erreur de parsing :', err);
+        }
+      }
+    }
+
+    res.end();
+  } catch (err) {
+    console.error(err);
+    res.status(500).send('Erreur serveur');
+  }
+});
+
 // Fonction pour transformer le Markdown en HTML
 const generateHtmlFromMarkdown = (markdownText) => {
     return marked(markdownText); // Cela convertira le markdown en HTML

@@ -75,44 +75,88 @@ const ChatMessages: React.FC<ChatMessagesProps> = ({
         try {
             let apiUrl = '';
             let bodyPayload: any = {};
-            let resultWithSources: string;
 
             if (activeSearch === 'search') {
                 apiUrl = 'http://localhost:3001/api/search';
                 bodyPayload = { query: input };
             } else {
-                apiUrl = 'http://localhost:3001/api/instruct';
+                apiUrl = 'http://localhost:3001/api/chat';
                 bodyPayload = { prompt: input };
             }
 
-            const response = await fetch(apiUrl, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(bodyPayload)
-            });
+            let resultWithSources = '';
 
-            const data = await response.json();
+            if (apiUrl.endsWith('/chat')) {
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(bodyPayload)
+                });
 
-            if (activeSearch === 'search') {
-                const sourcesList = data.sources.map((source: { domain: string; url: string }, index: number) =>
-                    `<li>${index + 1}. <a href="${source.url}" target="_blank">${source.domain}</a></li>`
-                ).join('');
+                const reader = response.body?.getReader();
+                const decoder = new TextDecoder();
+                let streamedContent = '';
 
-                resultWithSources = `${data.result}<br><br><strong>Sources:</strong><ul>${sourcesList}</ul>`;
+                // Ajoute un message vide que l'on va remplir progressivement
+                setChats(prevChats => prevChats.map(chat =>
+                    chat.id === chatId
+                        ? { ...chat, messages: [...chat.messages, { content: '', isUser: false }] }
+                        : chat
+                ));
+
+                if (reader) {
+                    while (true) {
+                        const { value, done } = await reader.read();
+                        if (done) break;
+
+                        const chunk = decoder.decode(value, { stream: true });
+                        streamedContent += chunk;
+
+                        // Mise à jour progressive du dernier message IA
+                        setChats(prevChats =>
+                            prevChats.map(chat => {
+                                if (chat.id !== chatId) return chat;
+                                const updatedMessages = [...chat.messages];
+                                updatedMessages[updatedMessages.length - 1] = {
+                                    ...updatedMessages[updatedMessages.length - 1],
+                                    content: streamedContent
+                                };
+                                return { ...chat, messages: updatedMessages };
+                            })
+                        );
+                    }
+                }
+
             } else {
-                resultWithSources = data.result || "Je n'ai pas pu traiter votre demande.";
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(bodyPayload)
+                });
+
+                const data = await response.json();
+
+                if (activeSearch === 'search') {
+                    const sourcesList = data.sources.map((source: { domain: string; url: string }, index: number) =>
+                        `<li>${index + 1}. <a href="${source.url}" target="_blank">${source.domain}</a></li>`
+                    ).join('');
+
+                    resultWithSources = `${data.result}<br><br><strong>Sources:</strong><ul>${sourcesList}</ul>`;
+                } else {
+                    resultWithSources = data.result || "Je n'ai pas pu traiter votre demande.";
+
+                    const aiMessage: Message = {
+                        content: resultWithSources,
+                        isUser: false
+                    };
+
+                    setChats(prevChats => prevChats.map(chat =>
+                        chat.id === chatId
+                            ? { ...chat, messages: [...chat.messages, aiMessage] }
+                            : chat
+                    ));
+                }
             }
-
-            const aiMessage: Message = {
-                content: resultWithSources,
-                isUser: false
-            };
-
-            setChats(prevChats => prevChats.map(chat =>
-                chat.id === chatId
-                    ? { ...chat, messages: [...chat.messages, aiMessage] }
-                    : chat
-            ));
 
         } catch (error) {
             console.error('Erreur lors de l’envoi :', error);
