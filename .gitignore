@@ -22,3 +22,14 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Documentation
+/documents*
+
+# bdd 
+server/__pycache__
+server/chroma*
+
+# env python
+mon_env
+mon_env/*

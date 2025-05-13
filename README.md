@@ -53,6 +53,14 @@ npx ts-node --esm server/index.js
 - Saisissez votre texte et profitez des corrections et traductions automatiques
 
 
+démarrer le serveur python
+```
+uvicorn server:app --reload
+
+
+python load_documents.py
+```
+
 ## Correction
 ![Correction Screenshot](/src/public/white-correction.png)
 ![Correction Screenshot](/src/public/dark-correction.png)

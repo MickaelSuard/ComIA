@@ -80,7 +80,7 @@ const ChatMessages: React.FC<ChatMessagesProps> = ({
                 apiUrl = 'http://localhost:3001/api/search';
                 bodyPayload = { query: input };
             } else {
-                apiUrl = 'http://localhost:3001/api/chat';
+                apiUrl = 'http://localhost:8000/api/chat';
                 bodyPayload = { prompt: input };
             }
 
@@ -110,23 +110,29 @@ const ChatMessages: React.FC<ChatMessagesProps> = ({
                         if (done) break;
 
                         const chunk = decoder.decode(value, { stream: true });
-                        streamedContent += chunk;
+                        try {
+                            const parsedChunk = JSON.parse(chunk);  // Parse chaque morceau JSON
 
-                        // Mise à jour progressive du dernier message IA
-                        setChats(prevChats =>
-                            prevChats.map(chat => {
-                                if (chat.id !== chatId) return chat;
-                                const updatedMessages = [...chat.messages];
-                                updatedMessages[updatedMessages.length - 1] = {
-                                    ...updatedMessages[updatedMessages.length - 1],
-                                    content: streamedContent
-                                };
-                                return { ...chat, messages: updatedMessages };
-                            })
-                        );
+                            // Ajouter la partie "response" du morceau à la réponse globale
+                            streamedContent += parsedChunk.response;
+
+                            // Mise à jour progressive du dernier message IA
+                            setChats(prevChats =>
+                                prevChats.map(chat => {
+                                    if (chat.id !== chatId) return chat;
+                                    const updatedMessages = [...chat.messages];
+                                    updatedMessages[updatedMessages.length - 1] = {
+                                        ...updatedMessages[updatedMessages.length - 1],
+                                        content: streamedContent
+                                    };
+                                    return { ...chat, messages: updatedMessages };
+                                })
+                            );
+                        } catch (e) {
+                            console.error("Erreur de parsing du chunk:", e);
+                        }
                     }
                 }
-
             } else {
                 const response = await fetch(apiUrl, {
                     method: 'POST',
@@ -176,6 +182,7 @@ const ChatMessages: React.FC<ChatMessagesProps> = ({
         }
     };
 
+
     return (
         <div className="flex flex-col h-full  max-w-7xl mx-auto">
             <AnimatePresence mode="wait">
@@ -204,6 +211,9 @@ const ChatMessages: React.FC<ChatMessagesProps> = ({
                                         {!message.isUser ? (
                                             <div className="flex items-center">
                                                 <div className="flex-1" dangerouslySetInnerHTML={{ __html: message.content }} />
+                                                {/* <ReactMarkdown>
+                                                    {message.content}
+                                                </ReactMarkdown> */}
                                                 <button
                                                     onClick={() => handleCopy(message.content)}
                                                     className={`ml-2 p-1 text-gray-500 hover:text-gray-700 ${classes.text} rounded-full shadow-sm`}

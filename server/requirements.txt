@@ -1,0 +1,29 @@
+# LangChain et ChromaDB pour la gestion de documents et l'indexation
+langchain
+chromadb
+
+# Bibliothèques pour les modèles de langage et traitement du texte
+sentence-transformers
+transformers
+torch
+
+# Pour la gestion de base de données PostgreSQL
+psycopg2-binary
+
+# Pour l'exécution des requêtes HTTP (si besoin)
+httpx
+
+# Bibliothèque pour le traitement de fichiers PDF
+PyMuPDF
+
+# Bibliothèque pour l'interaction avec Ollama
+ollama
+
+# Pour gérer les fichiers Excel dans ton projet React
+pandas
+
+# Outils pour le traitement des fichiers et la manipulation des données
+numpy
+
+# Outils de gestion d'environnement virtuel et dépendances
+pipenv  # ou venv selon ta gestion d'environnement
