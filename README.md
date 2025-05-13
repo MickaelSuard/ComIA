@@ -53,6 +53,23 @@ npx ts-node --esm server/index.js
 - Saisissez votre texte et profitez des corrections et traductions automatiques
 
 
+Activer l'environnement python
+```
+.\mon_env\Scripts\activate
+```
+
+Désactiver l'environnement python
+```
+deactivate
+```
+
+mettre toutes les dépendances python
+```
+pip freeze > server/requirements.txt
+```
+
+
+
 démarrer le serveur python
 ```
 uvicorn server:app --reload
